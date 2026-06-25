@@ -1,16 +1,15 @@
-import { Link } from 'react-router-dom';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 import {
   connectKommo,
   createPatient,
   fetchPatientById,
   fetchPatients,
-} from '../api/patients';
-import PatientList from '../components/patients/PatientList';
-import PatientFormModal from '../components/patients/PatientFormModal';
-import PatientDetailsDrawer from '../components/patients/PatientDetailsDrawer';
-import CrmConnectModal from '../components/patients/CrmConnectModal';
-import LoadingSpinner from '../components/patients/LoadingSpinner';
+} from "../api/patients";
+import PatientList from "../components/patients/PatientList";
+import PatientFormModal from "../components/patients/PatientFormModal";
+import PatientDetailsDrawer from "../components/patients/PatientDetailsDrawer";
+import CrmConnectModal from "../components/patients/CrmConnectModal";
+import LoadingSpinner from "../components/patients/LoadingSpinner";
 
 export default function PatientsPage() {
   const [patients, setPatients] = useState([]);
@@ -73,27 +72,25 @@ export default function PatientsPage() {
   const handleCreatePatient = async (payload) => {
     await createPatient(payload);
     await loadPatients();
-    showToast('Paciente cadastrado com sucesso.');
+    showToast("Paciente cadastrado com sucesso.");
   };
 
   const handleConnectKommo = async (payload) => {
     await connectKommo(payload);
-    showToast('CRM Kommo conectado com sucesso.');
+    showToast("CRM Kommo conectado com sucesso.");
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white border-b border-slate-200 px-6 py-3 flex items-center gap-4 text-sm">
-        <Link to="/" className="text-slate-600 hover:text-medical-600">Atendimento</Link>
-        <Link to="/agenda" className="text-slate-600 hover:text-medical-600">Agenda</Link>
-        <span className="text-medical-600 font-semibold">Pacientes</span>
-      </nav>
-
+    <div className="flex-1 bg-slate-50">
       <div id="wrapper" className="fuse-content max-w-5xl mx-auto px-6 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <p className="text-xs text-slate-400 mb-1">Easy Health &gt; Pacientes</p>
-            <h1 className="text-2xl font-bold text-slate-800">Gestão de Pacientes</h1>
+            <p className="text-xs text-slate-400 mb-1">
+              Easy Health &gt; Pacientes
+            </p>
+            <h1 className="text-2xl font-bold text-slate-800">
+              Gestão de Pacientes
+            </h1>
           </div>
 
           <div className="flex flex-wrap gap-3">

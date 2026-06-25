@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { EMPTY_DRAFTS } from '../constants/tabs';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { EMPTY_DRAFTS } from "../constants/tabs";
 
-const API = '/api';
+const API = "/api";
 const DEBOUNCE_MS = 1500;
 
 export function useAtendimento() {
-  const [phase, setPhase] = useState('entry');
+  const [phase, setPhase] = useState("entry");
   const [atendimentoId, setAtendimentoId] = useState(null);
+  const [pacienteId, setPacienteId] = useState(null);
   const [drafts, setDrafts] = useState(EMPTY_DRAFTS);
-  const [activeTab, setActiveTab] = useState('anamnese');
-  const [saveStatus, setSaveStatus] = useState('idle');
+  const [activeTab, setActiveTab] = useState("anamnese");
+  const [saveStatus, setSaveStatus] = useState("idle");
   const [error, setError] = useState(null);
   const [finalizing, setFinalizing] = useState(false);
   const [finalizedUrls, setFinalizedUrls] = useState(null);
@@ -42,11 +43,11 @@ export function useAtendimento() {
     const id = atendimentoIdRef.current;
     if (!id) return;
 
-    setSaveStatus('saving');
+    setSaveStatus("saving");
     try {
       const res = await fetch(`${API}/rascunho`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           atendimento_id: id,
           module,
@@ -56,13 +57,13 @@ export function useAtendimento() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Falha ao salvar rascunho');
+        throw new Error(data.error || "Falha ao salvar rascunho");
       }
 
-      setSaveStatus('saved');
+      setSaveStatus("saved");
       setError(null);
     } catch (err) {
-      setSaveStatus('error');
+      setSaveStatus("error");
       setError(err.message);
     }
   }, []);
@@ -74,31 +75,32 @@ export function useAtendimento() {
         saveDraft(module, content);
       }, DEBOUNCE_MS);
     },
-    [clearDebounce, saveDraft]
+    [clearDebounce, saveDraft],
   );
 
   const iniciarAtendimento = useCallback(async () => {
     setError(null);
-    setSaveStatus('saving');
+    setSaveStatus("saving");
     try {
       const res = await fetch(`${API}/iniciar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ medico_id: 1 }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Falha ao iniciar atendimento');
+        throw new Error(data.error || "Falha ao iniciar atendimento");
       }
 
       const data = await res.json();
       setAtendimentoId(data.atendimento_id);
+      setPacienteId(data.paciente_id);
       setDrafts(data.drafts ?? EMPTY_DRAFTS);
-      setPhase('workspace');
-      setSaveStatus('saved');
+      setPhase("workspace");
+      setSaveStatus("saved");
     } catch (err) {
-      setSaveStatus('error');
+      setSaveStatus("error");
       setError(err.message);
     }
   }, []);
@@ -109,16 +111,16 @@ export function useAtendimento() {
       setDrafts((prev) => ({ ...prev, [module]: content }));
       scheduleSave(module, content);
     },
-    [scheduleSave]
+    [scheduleSave],
   );
 
   const switchTab = useCallback(
     (tabId) => {
       clearDebounce();
       setActiveTab(tabId);
-      setSaveStatus('idle');
+      setSaveStatus("idle");
     },
-    [clearDebounce]
+    [clearDebounce],
   );
 
   const finalizarAtendimento = useCallback(async () => {
@@ -135,19 +137,19 @@ export function useAtendimento() {
       await saveDraft(pendingModule, pendingContent);
 
       const res = await fetch(`${API}/finalizar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ atendimento_id: id }),
       });
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Falha ao finalizar atendimento');
+        throw new Error(data.error || "Falha ao finalizar atendimento");
       }
 
       const data = await res.json();
       setFinalizedUrls(data.urls);
-      setPhase('finalized');
+      setPhase("finalized");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -160,6 +162,7 @@ export function useAtendimento() {
   return {
     phase,
     atendimentoId,
+    pacienteId,
     drafts,
     activeTab,
     saveStatus,

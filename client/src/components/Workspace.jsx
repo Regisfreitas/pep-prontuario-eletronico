@@ -1,8 +1,8 @@
-import { TABS } from '../constants/tabs';
-import Header from './Header';
-import Sidebar from './Sidebar';
-import SubToolbar from './SubToolbar';
-import RichTextEditor from './RichTextEditor';
+import { TABS } from "../constants/tabs";
+import Header from "./Header";
+import WorkspaceSidebar from "./WorkspaceSidebar";
+import SubToolbar from "./SubToolbar";
+import RichTextEditor from "./RichTextEditor";
 
 export default function Workspace({
   activeTab,
@@ -15,10 +15,10 @@ export default function Workspace({
   onFinalizar,
 }) {
   const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0];
-  const currentText = drafts[activeTab]?.texto ?? '';
+  const currentText = drafts[activeTab]?.texto ?? "";
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col flex-1">
       <Header
         onFinalizar={onFinalizar}
         finalizing={finalizing}
@@ -33,11 +33,13 @@ export default function Workspace({
       )}
 
       <div className="flex flex-1">
-        <Sidebar activeTab={activeTab} onTabChange={onTabChange} />
+        <WorkspaceSidebar activeTab={activeTab} onTabChange={onTabChange} />
 
         <main className="flex-1 flex flex-col min-w-0">
           <div className="px-6 py-4 bg-white border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-800">{currentTab.label}</h2>
+            <h2 className="text-lg font-semibold text-slate-800">
+              {currentTab.label}
+            </h2>
             <p className="text-xs text-slate-400 mt-0.5">
               Conteúdo salvo automaticamente após 1,5s sem digitação
             </p>

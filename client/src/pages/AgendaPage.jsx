@@ -1,21 +1,20 @@
-import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useAgenda } from '../hooks/useAgenda';
-import { useGoogleAuth } from '../hooks/useGoogleAuth';
-import { useBackendHealth } from '../hooks/useBackendHealth';
-import { useToast } from '../context/ToastContext';
-import BackendOfflineBanner from '../components/agenda/BackendOfflineBanner';
-import AgendaHeader from '../components/agenda/AgendaHeader';
-import CalendarToolbar from '../components/agenda/CalendarToolbar';
-import DoctorTabs from '../components/agenda/DoctorTabs';
-import AgendaCalendar from '../components/agenda/AgendaCalendar';
-import AgendaLegend from '../components/agenda/AgendaLegend';
-import ConsultaModal from '../components/agenda/ConsultaModal';
-import BloqueioModal from '../components/agenda/BloqueioModal';
+import { useState, useCallback } from "react";
+import { useAgenda } from "../hooks/useAgenda";
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
+import { useBackendHealth } from "../hooks/useBackendHealth";
+import { useToast } from "../context/ToastContext";
+import BackendOfflineBanner from "../components/agenda/BackendOfflineBanner";
+import AgendaHeader from "../components/agenda/AgendaHeader";
+import CalendarToolbar from "../components/agenda/CalendarToolbar";
+import DoctorTabs from "../components/agenda/DoctorTabs";
+import AgendaCalendar from "../components/agenda/AgendaCalendar";
+import AgendaLegend from "../components/agenda/AgendaLegend";
+import ConsultaModal from "../components/agenda/ConsultaModal";
+import BloqueioModal from "../components/agenda/BloqueioModal";
 import {
   getConsultaSyncMessage,
   getBloqueioSyncMessage,
-} from '../utils/googleSyncMessages';
+} from "../utils/googleSyncMessages";
 
 export default function AgendaPage() {
   const agenda = useAgenda();
@@ -41,7 +40,7 @@ export default function AgendaPage() {
       const { message, type } = getConsultaSyncMessage(result.google_sync);
       showToast(message, type);
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message, "error");
       throw err;
     }
   };
@@ -52,22 +51,19 @@ export default function AgendaPage() {
         ...form,
         doctor_id: Number(form.doctor_id),
       });
-      const { message, type } = getBloqueioSyncMessage(result.google_sync, result.total);
+      const { message, type } = getBloqueioSyncMessage(
+        result.google_sync,
+        result.total,
+      );
       showToast(message, type);
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.message, "error");
       throw err;
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-      <nav className="px-6 py-2 bg-medical-800 text-white text-sm flex gap-4">
-        <Link to="/agenda" className="font-semibold opacity-100">Agenda</Link>
-        <Link to="/pacientes" className="opacity-70 hover:opacity-100">Pacientes</Link>
-        <Link to="/" className="opacity-70 hover:opacity-100">Atendimento</Link>
-      </nav>
-
+    <div className="flex flex-col flex-1 bg-slate-50">
       {backend.online === false && (
         <BackendOfflineBanner onRetry={backend.ping} />
       )}
