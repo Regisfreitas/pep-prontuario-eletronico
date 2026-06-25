@@ -1,0 +1,12 @@
+node_modules/
+server/pep.db
+server/pep.db-wal
+server/pep.db-shm
+client/dist/
+.env
+.DS_Store
+*.log
+.postgres/
+server.log
+server.log.err
+/tmp/
