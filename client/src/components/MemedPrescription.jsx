@@ -3,13 +3,11 @@ import { fetchPatientById } from "../api/patients";
 import { fetchMemedToken, getMemedScriptUrl } from "../api/memed";
 
 const MEDICO_ID = 1;
-const LOAD_TIMEOUT_MS = 30000; // 30s timeout for module init
 
 function normalizeCpf(value) {
   if (!value) return "";
   return value.replace(/\D/g, "");
 }
-
 function formatDateToBr(value) {
   if (!value) return "";
   const [year, month, day] = value.split("-");
@@ -23,11 +21,9 @@ export default function MemedPrescription({ pacienteId }) {
     error: null,
     log: [],
   });
-  const [moduleReady, setModuleReady] = useState(false);
   const scriptRef = useRef(null);
   const initializedRef = useRef(false);
   const patientRef = useRef(null);
-  const tokenRef = useRef(null);
   const logRef = useRef([]);
   const timeoutRef = useRef(null);
 
@@ -43,33 +39,25 @@ export default function MemedPrescription({ pacienteId }) {
     addLog(`FALHA: ${msg}`);
     setState((s) => ({ ...s, phase: "error", error: msg }));
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setModuleReady(false);
   };
 
-  // ---------- Memed module init handler ----------
-  const handleModuleInit = useCallback(async (event) => {
-    const moduleName = event?.detail?.module || event?.detail?.name;
-    addLog(`Evento core:moduleInit: ${moduleName || "desconhecido"}`);
-
-    if (moduleName !== "plataforma.prescricao") return;
+  // ---------- Proactive init when MdHub is ready ----------
+  const attemptInit = useCallback(async () => {
     if (initializedRef.current) return;
-    initializedRef.current = true;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (!window.MdHub || !window.MdHub.command) return;
 
     const patient = patientRef.current;
-    if (!patient || !window.MdHub) {
-      fail("Dados do paciente ou MdHub não disponíveis");
-      return;
-    }
+    initializedRef.current = true;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    addLog("MdHub detectado — inicializando...");
 
     try {
-      addLog("Ativando layout receituário de controle especial...");
       await window.MdHub.command.send("plataforma.sdk", "find", {
         resource: "opcoes-receituario/ativar/2",
         cache: false,
       });
+      addLog("Layout controle especial ativado");
 
-      addLog("Configurando feature toggles...");
       await window.MdHub.command.send(
         "plataforma.prescricao",
         "setFeatureToggle",
@@ -86,87 +74,64 @@ export default function MemedPrescription({ pacienteId }) {
           enableAlerts: true,
         },
       );
+      addLog("Feature toggles configurados");
 
-      addLog(`Enviando dados: ${patient.full_name}`);
-      await window.MdHub.command.send("plataforma.prescricao", "setPaciente", {
-        idExterno: patient.id,
-        nome: patient.full_name,
-        cpf: normalizeCpf(patient.document || ""),
-        sexo:
-          patient.gender === "Masculino"
-            ? "Masculino"
-            : patient.gender === "Feminino"
-              ? "Feminino"
-              : "",
-        data_nascimento: formatDateToBr(patient.birth_date),
-        telefone: patient.phone || "",
-        email: patient.email || "",
-      });
+      if (patient) {
+        await window.MdHub.command.send(
+          "plataforma.prescricao",
+          "setPaciente",
+          {
+            idExterno: patient.id,
+            nome: patient.full_name,
+            cpf: normalizeCpf(patient.document || ""),
+            sexo:
+              patient.gender === "Masculino"
+                ? "Masculino"
+                : patient.gender === "Feminino"
+                  ? "Feminino"
+                  : "",
+            data_nascimento: formatDateToBr(patient.birth_date),
+            telefone: patient.phone || "",
+            email: patient.email || "",
+          },
+        );
+        addLog(`Paciente configurado: ${patient.full_name}`);
+      }
 
-      addLog("Exibindo módulo de prescrição");
       window.MdHub.module.show("plataforma.prescricao");
       setState((s) => ({ ...s, phase: "ready" }));
+      addLog("Módulo exibido");
     } catch (err) {
-      fail(`Erro na configuração: ${err.message}`);
+      fail(err.message);
     }
   }, []);
 
-  // ---------- Lifecycle: load script + patient ----------
+  // ---------- Lifecycle ----------
   useEffect(() => {
     let cancelled = false;
+    let pollInterval;
 
     async function init() {
-      addLog("Iniciando carregamento...");
-
+      addLog("Iniciando...");
       try {
-        // Fetch patient
         if (pacienteId) {
           try {
-            const patient = await fetchPatientById(pacienteId);
-            patientRef.current = patient;
-            addLog(`Paciente: ${patient.full_name}`);
+            patientRef.current = await fetchPatientById(pacienteId);
+            addLog(`Paciente: ${patientRef.current?.full_name}`);
           } catch {
-            addLog("Aviso: dados do paciente não carregados");
+            addLog("Aviso: paciente não carregado");
           }
         }
 
-        // Fetch token
         const { memed_token } = await fetchMemedToken(MEDICO_ID);
         if (cancelled) return;
-        tokenRef.current = memed_token;
-        addLog(
-          `Token obtido (${memed_token ? memed_token.substring(0, 8) + "..." : "nulo"})`,
-        );
+        addLog(`Token obtido: ${memed_token.substring(0, 8)}...`);
 
-        // Timeout safety: if moduleInit never fires
+        // Timeout safety
         timeoutRef.current = setTimeout(() => {
-          if (!initializedRef.current) {
-            fail(
-              "Timeout: módulo Memed não inicializou em 30s. Verifique o token e a conexão.",
-            );
-          }
-        }, LOAD_TIMEOUT_MS);
-
-        // Register listener on both document and window + spy
-        const handler = handleModuleInit;
-        const spy = (e) => {
-          if (
-            e.type.startsWith("core:") ||
-            e.type.startsWith("memed") ||
-            e.type.includes("MdHub") ||
-            e.type.includes("module")
-          ) {
-            addLog(
-              `Evento: ${e.type} | detail: ${JSON.stringify(e.detail || {}).slice(0, 150)}`,
-            );
-          }
-        };
-        document.addEventListener("core:moduleInit", handler);
-        window.addEventListener("core:moduleInit", handler);
-        document.addEventListener("core:moduleInit", spy);
-        document.addEventListener("memed:init", spy);
-        document.addEventListener("MdHub:ready", spy);
-        document.addEventListener("module:init", spy);
+          if (!initializedRef.current)
+            fail("Timeout: MdHub não inicializou em 30s");
+        }, 30000);
 
         // Inject script
         const script = document.createElement("script");
@@ -178,24 +143,21 @@ export default function MemedPrescription({ pacienteId }) {
 
         script.onload = () => {
           if (cancelled) return;
-          addLog("Script Memed carregado (onload)");
+          addLog("Script carregado");
           setState((s) => ({ ...s, phase: "loaded" }));
-
-          // Check if MdHub exists
-          setTimeout(() => {
-            if (window.MdHub) {
-              addLog("MdHub detectado no window");
-            } else {
-              addLog("AVISO: MdHub NÃO detectado após load do script");
-            }
-          }, 1000);
+          // Poll for MdHub readiness
+          let attempts = 0;
+          pollInterval = setInterval(() => {
+            attempts++;
+            if (!window.MdHub || !window.MdHub.command) return;
+            clearInterval(pollInterval);
+            attemptInit();
+          }, 500);
         };
 
         script.onerror = () => {
-          if (cancelled) return;
-          fail("Falha ao carregar o script da Memed");
+          if (!cancelled) fail("Falha ao carregar script Memed");
         };
-
         document.body.appendChild(script);
         scriptRef.current = script;
       } catch (err) {
@@ -208,8 +170,7 @@ export default function MemedPrescription({ pacienteId }) {
     return () => {
       cancelled = true;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      document.removeEventListener("core:moduleInit", handleModuleInit);
-      window.removeEventListener("core:moduleInit", handleModuleInit);
+      if (pollInterval) clearInterval(pollInterval);
       try {
         if (window.MdHub?.module)
           window.MdHub.module.hide("plataforma.prescricao");
@@ -223,7 +184,6 @@ export default function MemedPrescription({ pacienteId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pacienteId]);
 
-  // ---------- Close ----------
   const handleClose = () => {
     try {
       window.MdHub?.module?.hide("plataforma.prescricao");
@@ -283,14 +243,12 @@ export default function MemedPrescription({ pacienteId }) {
       role="region"
       aria-label="Prescrição de Controlados — Memed"
     >
-      {(state.phase === "loaded" || state.phase === "ready") && (
+      {state.phase !== "loading" && (
         <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-200 shrink-0">
           <span className="text-xs text-slate-500">
             {state.phase === "ready"
               ? "Memed ativo"
-              : moduleReady
-                ? "Configurando..."
-                : "Aguardando inicialização do módulo..."}
+              : "Aguardando inicialização..."}
           </span>
           <button
             type="button"
@@ -302,14 +260,12 @@ export default function MemedPrescription({ pacienteId }) {
           </button>
         </div>
       )}
-
       <div
         className="flex-1 bg-white"
         style={{ minWidth: 820, minHeight: 700 }}
       >
         <div id="prescricao-controlados" className="w-full h-full" />
       </div>
-
       {state.phase === "loading" && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-white/95 z-10"
