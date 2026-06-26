@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { TABS } from "../constants/tabs";
 import Header from "./Header";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import SubToolbar from "./SubToolbar";
 import RichTextEditor from "./RichTextEditor";
 import PrescriptionModal from "./PrescriptionModal";
+import SigningModal from "./SigningModal";
 
 export default function Workspace({
   activeTab,
@@ -15,13 +17,23 @@ export default function Workspace({
   onDraftChange,
   onFinalizar,
 }) {
+  const [signingOpen, setSigningOpen] = useState(false);
   const currentTab = TABS.find((t) => t.id === activeTab) ?? TABS[0];
   const currentText = drafts[activeTab]?.texto ?? "";
+
+  const handleFinalizarClick = () => {
+    setSigningOpen(true);
+  };
+
+  const handleSignDecision = (signed) => {
+    setSigningOpen(false);
+    onFinalizar(signed);
+  };
 
   return (
     <div className="flex flex-col flex-1">
       <Header
-        onFinalizar={onFinalizar}
+        onFinalizar={handleFinalizarClick}
         finalizing={finalizing}
         saveStatus={saveStatus}
       />
@@ -62,6 +74,12 @@ export default function Workspace({
           </div>
         </main>
       </div>
+
+      <SigningModal
+        open={signingOpen}
+        onClose={() => setSigningOpen(false)}
+        onSign={handleSignDecision}
+      />
     </div>
   );
 }

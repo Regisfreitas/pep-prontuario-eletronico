@@ -14,6 +14,7 @@ export function useAtendimento() {
   const [error, setError] = useState(null);
   const [finalizing, setFinalizing] = useState(false);
   const [finalizedUrls, setFinalizedUrls] = useState(null);
+  const [finalizedSigned, setFinalizedSigned] = useState(false);
 
   const debounceRef = useRef(null);
   const draftsRef = useRef(drafts);
@@ -23,11 +24,9 @@ export function useAtendimento() {
   useEffect(() => {
     draftsRef.current = drafts;
   }, [drafts]);
-
   useEffect(() => {
     activeTabRef.current = activeTab;
   }, [activeTab]);
-
   useEffect(() => {
     atendimentoIdRef.current = atendimentoId;
   }, [atendimentoId]);
@@ -42,24 +41,17 @@ export function useAtendimento() {
   const saveDraft = useCallback(async (module, content) => {
     const id = atendimentoIdRef.current;
     if (!id) return;
-
     setSaveStatus("saving");
     try {
       const res = await fetch(`${API}/rascunho`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          atendimento_id: id,
-          module,
-          content,
-        }),
+        body: JSON.stringify({ atendimento_id: id, module, content }),
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Falha ao salvar rascunho");
       }
-
       setSaveStatus("saved");
       setError(null);
     } catch (err) {
@@ -71,28 +63,27 @@ export function useAtendimento() {
   const scheduleSave = useCallback(
     (module, content) => {
       clearDebounce();
-      debounceRef.current = setTimeout(() => {
-        saveDraft(module, content);
-      }, DEBOUNCE_MS);
+      debounceRef.current = setTimeout(
+        () => saveDraft(module, content),
+        DEBOUNCE_MS,
+      );
     },
     [clearDebounce, saveDraft],
   );
 
-  const iniciarAtendimento = useCallback(async (pacienteId) => {
+  const iniciarAtendimento = useCallback(async (pid) => {
     setError(null);
     setSaveStatus("saving");
     try {
       const res = await fetch(`${API}/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ medico_id: 1, paciente_id: pacienteId }),
+        body: JSON.stringify({ medico_id: 1, paciente_id: pid }),
       });
-
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || "Falha ao iniciar atendimento");
       }
-
       const data = await res.json();
       setAtendimentoId(data.atendimento_id);
       setPacienteId(data.paciente_id);
@@ -123,39 +114,38 @@ export function useAtendimento() {
     [clearDebounce],
   );
 
-  const finalizarAtendimento = useCallback(async () => {
-    const id = atendimentoIdRef.current;
-    if (!id) return;
-
-    clearDebounce();
-    setFinalizing(true);
-    setError(null);
-
-    try {
-      const pendingModule = activeTabRef.current;
-      const pendingContent = draftsRef.current[pendingModule];
-      await saveDraft(pendingModule, pendingContent);
-
-      const res = await fetch(`${API}/finalizar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ atendimento_id: id }),
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Falha ao finalizar atendimento");
+  const finalizarAtendimento = useCallback(
+    async (signed = false) => {
+      const id = atendimentoIdRef.current;
+      if (!id) return;
+      clearDebounce();
+      setFinalizing(true);
+      setError(null);
+      setFinalizedSigned(signed);
+      try {
+        const pendingModule = activeTabRef.current;
+        const pendingContent = draftsRef.current[pendingModule];
+        await saveDraft(pendingModule, pendingContent);
+        const res = await fetch(`${API}/finalizar`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ atendimento_id: id, signed }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Falha ao finalizar atendimento");
+        }
+        const data = await res.json();
+        setFinalizedUrls(data.urls);
+        setPhase("finalized");
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setFinalizing(false);
       }
-
-      const data = await res.json();
-      setFinalizedUrls(data.urls);
-      setPhase("finalized");
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setFinalizing(false);
-    }
-  }, [clearDebounce, saveDraft]);
+    },
+    [clearDebounce, saveDraft],
+  );
 
   useEffect(() => () => clearDebounce(), [clearDebounce]);
 
@@ -169,6 +159,7 @@ export function useAtendimento() {
     error,
     finalizing,
     finalizedUrls,
+    finalizedSigned,
     iniciarAtendimento,
     updateDraft,
     switchTab,

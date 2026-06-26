@@ -13,6 +13,7 @@ export default function AtendimentoPage() {
     error,
     finalizing,
     finalizedUrls,
+    finalizedSigned,
     iniciarAtendimento,
     updateDraft,
     switchTab,
@@ -34,6 +35,7 @@ export default function AtendimentoPage() {
       <FinalizedView
         atendimentoId={atendimentoId}
         urls={finalizedUrls}
+        signed={finalizedSigned}
         onNewSession={() => window.location.reload()}
       />
     );
