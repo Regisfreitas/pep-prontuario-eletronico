@@ -46,36 +46,24 @@ export default function MemedPrescription({ pacienteId }) {
     if (initializedRef.current) return;
     if (!window.MdHub || !window.MdHub.command) return;
 
-    const patient = patientRef.current;
     initializedRef.current = true;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     addLog("MdHub detectado — inicializando...");
 
+    const patient = patientRef.current;
+
     try {
-      await window.MdHub.command.send("plataforma.sdk", "find", {
-        resource: "opcoes-receituario/ativar/2",
-        cache: false,
-      });
-      addLog("Layout controle especial ativado");
+      // Verificar se modulo esta carregado
+      if (window.MdHub.module?.isLoaded) {
+        const loaded = window.MdHub.module.isLoaded("plataforma.prescricao");
+        addLog(`plataforma.prescricao carregado: ${loaded}`);
+        if (!loaded) {
+          initializedRef.current = false; // retry next poll
+          return;
+        }
+      }
 
-      await window.MdHub.command.send(
-        "plataforma.prescricao",
-        "setFeatureToggle",
-        {
-          historyPrescription: false,
-          optionsPrescription: false,
-          removePrescription: false,
-          buttonClose: false,
-          forceSign: true,
-          showHelpMenu: false,
-          showProtocol: false,
-          editIdentification: false,
-          copyMedicalRecords: true,
-          enableAlerts: true,
-        },
-      );
-      addLog("Feature toggles configurados");
-
+      // Enviar dados do paciente (passo minimo)
       if (patient) {
         await window.MdHub.command.send(
           "plataforma.prescricao",
@@ -102,7 +90,8 @@ export default function MemedPrescription({ pacienteId }) {
       setState((s) => ({ ...s, phase: "ready" }));
       addLog("Módulo exibido");
     } catch (err) {
-      fail(err.message);
+      addLog(`Erro: ${err.message}`);
+      initializedRef.current = false; // retry
     }
   }, []);
 
