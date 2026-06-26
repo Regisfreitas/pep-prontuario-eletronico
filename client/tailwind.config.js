@@ -1,17 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,jsx}'],
+  content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
     extend: {
       colors: {
-        medical: {
-          50: '#f0f7ff',
-          100: '#e0effe',
-          600: '#2563eb',
-          700: '#1d4ed8',
-          800: '#1e3a5f',
-          900: '#0f2744',
+        brand: {
+          50: "#f5f3ff",
+          100: "#ede9fe",
+          200: "#C4B5FD",
+          DEFAULT: "#6D28D9",
+          600: "#6D28D9",
+          700: "#4C1D95",
+          800: "#3b0f6b",
+          900: "#2c0a52",
         },
+      },
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+      },
+      borderRadius: {
+        xl: "0.75rem",
       },
     },
   },

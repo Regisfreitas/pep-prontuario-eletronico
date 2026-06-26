@@ -94,8 +94,8 @@ export default function PlaceholderPage() {
       </div>
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-medical-50 flex items-center justify-center">
-            {Icon && <Icon size={32} className="text-medical-600" />}
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-brand-50 flex items-center justify-center">
+            {Icon && <Icon size={32} className="text-brand-600" />}
           </div>
           <h2 className="text-lg font-semibold text-slate-700 mb-2">
             {meta.title}

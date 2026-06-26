@@ -50,7 +50,7 @@ export default function RichTextEditor({ value, onChange, placeholder }) {
         <div className="w-px h-6 bg-slate-200 mx-2" />
         <button
           type="button"
-          className="px-3 py-1.5 text-xs font-medium text-medical-600 bg-medical-50 border border-medical-100 rounded-md hover:bg-medical-100 transition-colors"
+          className="px-3 py-1.5 text-xs font-medium text-brand-600 bg-brand-50 border border-brand-100 rounded-md hover:bg-brand-100 transition-colors"
         >
           Importar Exames
         </button>

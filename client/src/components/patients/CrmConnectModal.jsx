@@ -79,7 +79,7 @@ export default function CrmConnectModal({ open, onClose, onSubmit }) {
               type="submit"
               data-testid="btn-save-crm"
               disabled={saving}
-              className="px-5 py-2 bg-medical-600 hover:bg-medical-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg"
+              className="px-5 py-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg"
               aria-label="Salvar credenciais do Kommo"
             >
               {saving ? 'Conectando...' : 'Conectar'}
@@ -92,4 +92,4 @@ export default function CrmConnectModal({ open, onClose, onSubmit }) {
 }
 
 const inputCls =
-  'w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-600/30 focus:border-medical-600';
+  'w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30 focus:border-brand-600';

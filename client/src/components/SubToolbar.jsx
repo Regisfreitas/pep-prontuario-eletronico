@@ -12,7 +12,7 @@ export default function SubToolbar() {
         <button
           key={action}
           type="button"
-          className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:border-medical-600 hover:text-medical-600 transition-colors"
+          className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 rounded-md hover:border-brand-600 hover:text-brand-600 transition-colors"
         >
           {action}
         </button>

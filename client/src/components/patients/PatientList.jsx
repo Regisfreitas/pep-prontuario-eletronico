@@ -22,7 +22,7 @@ export default function PatientList({ patients, onSelectPatient }) {
               key={patient.id}
               data-testid={`patient-item-${patient.id}`}
               onClick={() => onSelectPatient(patient.id)}
-              className="border-b border-slate-100 hover:bg-medical-50 cursor-pointer transition-colors"
+              className="border-b border-slate-100 hover:bg-brand-50 cursor-pointer transition-colors"
             >
               <td className="py-3 px-4 text-slate-800 font-medium">{patient.full_name}</td>
               <td className="py-3 px-4 text-slate-600">{patient.age} anos</td>

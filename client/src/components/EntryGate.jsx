@@ -95,9 +95,9 @@ export default function EntryGate({ onStart, loading, error }) {
   const initials = selected?.full_name ? getInitials(selected.full_name) : "?";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-medical-50 to-slate-100 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 to-slate-100 p-6">
       <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
-        <div className="bg-medical-800 px-8 py-6 text-white">
+        <div className="bg-brand-800 px-8 py-6 text-white">
           <p className="text-sm font-medium text-blue-200 uppercase tracking-wider">
             Prontuário Eletrônico
           </p>
@@ -113,11 +113,11 @@ export default function EntryGate({ onStart, loading, error }) {
               onClick={() => setOpen((o) => !o)}
               className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
                 open
-                  ? "border-medical-600 ring-2 ring-medical-600/20 bg-white"
+                  ? "border-brand-600 ring-2 ring-brand-600/20 bg-white"
                   : "border-slate-100 bg-slate-50 hover:border-slate-200"
               }`}
             >
-              <div className="w-14 h-14 rounded-full bg-medical-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
+              <div className="w-14 h-14 rounded-full bg-brand-600 flex items-center justify-center text-white text-xl font-bold shrink-0">
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
@@ -155,14 +155,14 @@ export default function EntryGate({ onStart, loading, error }) {
                     placeholder="Buscar paciente por nome..."
                     value={search}
                     onChange={(e) => handleSearch(e.target.value)}
-                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-600/30 focus:border-medical-600"
+                    className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30 focus:border-brand-600"
                   />
                 </div>
 
                 <div className="max-h-60 overflow-y-auto">
                   {searching && (
                     <div className="flex items-center justify-center py-4">
-                      <div className="w-5 h-5 border-2 border-medical-100 border-t-medical-600 rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
                     </div>
                   )}
 
@@ -181,13 +181,13 @@ export default function EntryGate({ onStart, loading, error }) {
                         type="button"
                         data-testid={`patient-option-${patient.id}`}
                         onClick={() => handleSelect(patient)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-medical-50 ${
+                        className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-brand-50 ${
                           selected?.id === patient.id
-                            ? "bg-medical-50 border-l-2 border-medical-600"
+                            ? "bg-brand-50 border-l-2 border-brand-600"
                             : ""
                         }`}
                       >
-                        <div className="w-9 h-9 rounded-full bg-medical-100 flex items-center justify-center text-sm font-bold text-medical-700 shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center text-sm font-bold text-brand-700 shrink-0">
                           {getInitials(patient.full_name)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -211,9 +211,9 @@ export default function EntryGate({ onStart, loading, error }) {
                       <button
                         type="button"
                         onClick={() => handleSelect(selected)}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-medical-50 text-left transition-colors"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-brand-50 text-left transition-colors"
                       >
-                        <div className="w-8 h-8 rounded-full bg-medical-200 flex items-center justify-center text-xs font-bold text-medical-700 shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-brand-200 flex items-center justify-center text-xs font-bold text-brand-700 shrink-0">
                           {getInitials(selected.full_name)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -230,7 +230,7 @@ export default function EntryGate({ onStart, loading, error }) {
 
                   {!suggestedLoaded && search.trim().length < 2 && (
                     <div className="flex items-center justify-center py-4">
-                      <div className="w-5 h-5 border-2 border-medical-100 border-t-medical-600 rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
                     </div>
                   )}
                 </div>
@@ -255,7 +255,7 @@ export default function EntryGate({ onStart, loading, error }) {
             data-testid="btn-start-atendimento"
             onClick={handleStart}
             disabled={loading || !selected}
-            className="w-full py-3.5 px-6 bg-medical-600 hover:bg-medical-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors shadow-sm"
+            className="w-full py-3.5 px-6 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors shadow-sm"
           >
             {loading
               ? "Iniciando atendimento..."

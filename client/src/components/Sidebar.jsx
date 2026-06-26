@@ -183,7 +183,7 @@ function Accordion({ accordion, expanded, isOpen, onToggle }) {
                 className={({ isActive }) =>
                   `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                     isActive
-                      ? "bg-medical-50 text-medical-700 font-medium"
+                      ? "bg-brand-50 text-brand-700 font-medium"
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                   }`
                 }
@@ -245,11 +245,11 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="flex items-center h-14 px-3 border-b border-slate-100">
         {expanded ? (
-          <span className="text-sm font-bold text-medical-800 tracking-wide truncate">
+          <span className="text-sm font-bold text-brand-800 tracking-wide truncate">
             PEP SoMed
           </span>
         ) : (
-          <span className="text-sm font-bold text-medical-800 mx-auto">P</span>
+          <span className="text-sm font-bold text-brand-800 mx-auto">P</span>
         )}
       </div>
 
@@ -284,7 +284,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                   isActive
-                    ? "bg-medical-600 text-white font-medium shadow-sm"
+                    ? "bg-brand-600 text-white font-medium shadow-sm"
                     : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
                 }`
               }

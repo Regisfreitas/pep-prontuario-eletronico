@@ -76,7 +76,7 @@ export default function CalendarToolbar({
             onClick={() => onViewChange(v.id)}
             className={`px-4 py-1.5 text-sm font-medium transition-colors ${
               view === v.id
-                ? "bg-medical-600 text-white"
+                ? "bg-brand-600 text-white"
                 : "bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >

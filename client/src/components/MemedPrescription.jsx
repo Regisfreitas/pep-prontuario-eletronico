@@ -185,7 +185,7 @@ export default function MemedPrescription({ pacienteId }) {
       aria-live="polite"
       aria-label="Carregando prescrição"
     >
-      <div className="w-10 h-10 border-4 border-medical-100 border-t-medical-600 rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
       <p className="mt-4 text-sm text-slate-500">Carregando módulo de prescrição...</p>
     </div>
   );

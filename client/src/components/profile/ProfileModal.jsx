@@ -55,7 +55,7 @@ function Field({ label, children }) {
 }
 
 const inputCls =
-  "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-600/30 focus:border-medical-600 disabled:bg-slate-50 disabled:text-slate-400";
+  "w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30 focus:border-brand-600 disabled:bg-slate-50 disabled:text-slate-400";
 
 // ---------- Main Modal ----------
 
@@ -219,7 +219,7 @@ export default function ProfileModal({ open, onClose }) {
               onClick={() => setActiveTab(tab.id)}
               className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
                 activeTab === tab.id
-                  ? "border-medical-600 text-medical-600"
+                  ? "border-brand-600 text-brand-600"
                   : "border-transparent text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -237,7 +237,7 @@ export default function ProfileModal({ open, onClose }) {
               role="status"
               aria-label="Carregando perfil"
             >
-              <div className="w-10 h-10 border-4 border-medical-100 border-t-medical-600 rounded-full animate-spin" />
+              <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
               <p className="mt-4 text-sm text-slate-500">Carregando perfil...</p>
             </div>
           ) : (
@@ -434,7 +434,7 @@ export default function ProfileModal({ open, onClose }) {
             data-testid="btn-save-profile"
             onClick={handleSave}
             disabled={saving || loading}
-            className="px-6 py-2.5 bg-medical-600 hover:bg-medical-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors"
+            className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white text-sm font-semibold rounded-lg transition-colors"
           >
             {saving ? "Salvando..." : "Salvar"}
           </button>

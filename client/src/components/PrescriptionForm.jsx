@@ -28,7 +28,7 @@ function LinhaPrescricao({ index, linha, onChange, onRemover, mode }) {
             type="text"
             value={linha.medicamento}
             onChange={(e) => onChange(index, "medicamento", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-600/30"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30"
             placeholder="Nome do medicamento"
             list={`sugestoes-${mode}-${index}`}
             data-testid={`prescricao-medicamento-${mode}-${index}`}
@@ -47,7 +47,7 @@ function LinhaPrescricao({ index, linha, onChange, onRemover, mode }) {
             type="text"
             value={linha.dosagem}
             onChange={(e) => onChange(index, "dosagem", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-600/30"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30"
             placeholder="Ex: 1 comprimido"
             data-testid={`prescricao-dosagem-${mode}-${index}`}
           />
@@ -60,7 +60,7 @@ function LinhaPrescricao({ index, linha, onChange, onRemover, mode }) {
             type="text"
             value={linha.posologia}
             onChange={(e) => onChange(index, "posologia", e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-600/30"
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30"
             placeholder="Ex: 8/8h por 7 dias"
             data-testid={`prescricao-posologia-${mode}-${index}`}
           />
@@ -123,7 +123,7 @@ export default function PrescriptionForm({ mode, onChange }) {
         <button
           type="button"
           onClick={handleAdicionar}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-medical-600 bg-medical-50 border border-medical-200 rounded-lg hover:bg-medical-100 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-600 bg-brand-50 border border-brand-200 rounded-lg hover:bg-brand-100 transition-colors"
           data-testid={`prescricao-add-${mode}`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

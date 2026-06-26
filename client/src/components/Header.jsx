@@ -16,7 +16,7 @@ export default function Header({ onFinalizar, finalizing, saveStatus }) {
     <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
       <div className="flex items-center justify-between px-6 py-3">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-full bg-medical-600 flex items-center justify-center text-white text-sm font-bold">
+          <div className="w-10 h-10 rounded-full bg-brand-600 flex items-center justify-center text-white text-sm font-bold">
             DA
           </div>
           <div>
@@ -32,7 +32,7 @@ export default function Header({ onFinalizar, finalizing, saveStatus }) {
             <button
               key={link}
               type="button"
-              className="px-3 py-1.5 text-sm text-slate-600 hover:text-medical-600 hover:bg-medical-50 rounded-lg transition-colors"
+              className="px-3 py-1.5 text-sm text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
             >
               {link}
             </button>

@@ -33,7 +33,7 @@ export default function PrescriptionModal() {
           onClick={() => setActiveTab("simple")}
           className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
             activeTab === "simple"
-              ? "border-medical-600 text-medical-600"
+              ? "border-brand-600 text-brand-600"
               : "border-transparent text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -46,7 +46,7 @@ export default function PrescriptionModal() {
           onClick={() => setActiveTab("controlled")}
           className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
             activeTab === "controlled"
-              ? "border-medical-600 text-medical-600"
+              ? "border-brand-600 text-brand-600"
               : "border-transparent text-slate-500 hover:text-slate-700"
           }`}
         >

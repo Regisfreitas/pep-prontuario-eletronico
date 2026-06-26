@@ -17,7 +17,7 @@ export default function Sidebar({ activeTab, onTabChange }) {
                 onClick={() => onTabChange(tab.id)}
                 className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
                   isActive
-                    ? 'bg-medical-600 text-white font-medium shadow-sm'
+                    ? 'bg-brand-600 text-white font-medium shadow-sm'
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
               >

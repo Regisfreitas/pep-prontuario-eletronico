@@ -68,7 +68,7 @@ export default function SigningModal({ open, onClose, onSign }) {
                 type="button"
                 onClick={handleYes}
                 data-testid="signing-modal-btn-sign"
-                className="px-5 py-2.5 bg-medical-600 hover:bg-medical-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
               >
                 Sim, assinar digitalmente
               </button>
@@ -80,8 +80,8 @@ export default function SigningModal({ open, onClose, onSign }) {
         {step === "signing" && (
           <>
             <div className="px-6 py-5 border-b border-slate-200">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-medical-100 flex items-center justify-center">
-                <svg className="w-6 h-6 text-medical-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-brand-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-brand-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
@@ -100,7 +100,7 @@ export default function SigningModal({ open, onClose, onSign }) {
                 </p>
                 <select
                   data-testid="signing-modal-certificate-select"
-                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-600/30"
+                  className="w-full px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30"
                 >
                   <option value="">Nenhum certificado cadastrado</option>
                   <option value="mock">Certificado A1 — Dr. Marco Silva (mock)</option>
@@ -133,7 +133,7 @@ export default function SigningModal({ open, onClose, onSign }) {
                 type="button"
                 onClick={handleSign}
                 data-testid="signing-modal-btn-confirm"
-                className="px-6 py-2.5 bg-medical-600 hover:bg-medical-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+                className="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
               >
                 Assinar e Finalizar
               </button>

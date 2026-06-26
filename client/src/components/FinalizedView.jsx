@@ -47,7 +47,7 @@ export default function FinalizedView({
                 href={urls?.[tab.id]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-medical-600 hover:underline truncate max-w-[60%]"
+                className="text-xs text-brand-600 hover:underline truncate max-w-[60%]"
               >
                 {urls?.[tab.id]}
               </a>
@@ -58,7 +58,7 @@ export default function FinalizedView({
         <button
           type="button"
           onClick={onNewSession}
-          className="w-full mt-8 py-3 bg-medical-600 hover:bg-medical-700 text-white font-semibold rounded-xl transition-colors"
+          className="w-full mt-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors"
         >
           Novo Atendimento
         </button>
