@@ -1,7 +1,8 @@
 import { useState } from "react";
 import PrescriptionForm from "./PrescriptionForm";
+import MemedPrescription from "./MemedPrescription";
 
-export default function PrescriptionModal() {
+export default function PrescriptionModal({ pacienteId }) {
   const [activeTab, setActiveTab] = useState("simple");
 
   return (
@@ -55,8 +56,14 @@ export default function PrescriptionModal() {
       </nav>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6 bg-white">
-        <PrescriptionForm mode={activeTab} />
+      <div className="flex-1 overflow-hidden relative">
+        {activeTab === "controlled" ? (
+          <MemedPrescription pacienteId={pacienteId} />
+        ) : (
+          <div className="overflow-y-auto p-6 bg-white h-full">
+            <PrescriptionForm mode="simple" />
+          </div>
+        )}
       </div>
     </div>
   );

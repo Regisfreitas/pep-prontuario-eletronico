@@ -48,6 +48,7 @@ export default function AtendimentoPage() {
       saveStatus={saveStatus}
       finalizing={finalizing}
       error={error}
+      pacienteId={pacienteId}
       onTabChange={switchTab}
       onDraftChange={updateDraft}
       onFinalizar={finalizarAtendimento}

@@ -13,6 +13,7 @@ export default function Workspace({
   saveStatus,
   finalizing,
   error,
+  pacienteId,
   onTabChange,
   onDraftChange,
   onFinalizar,
@@ -62,7 +63,7 @@ export default function Workspace({
             className={`flex-1 ${activeTab === "prescription" ? "" : "bg-white m-4 rounded-xl border border-slate-200 shadow-sm overflow-hidden"}`}
           >
             {activeTab === "prescription" ? (
-              <PrescriptionModal />
+              <PrescriptionModal pacienteId={pacienteId} />
             ) : (
               <RichTextEditor
                 key={activeTab}
