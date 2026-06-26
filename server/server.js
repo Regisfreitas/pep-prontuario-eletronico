@@ -25,6 +25,10 @@ const profileRoutes = require("./routes/profile");
 const { seedDemoData } = require("./controllers/agendaController");
 const { seedDoctors } = require("./services/doctorService");
 const { seedPatients } = require("./services/patientService");
+const {
+  seedPromptAI,
+  seedCIDReference,
+} = require("./services/aiScribeSeedService");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -60,6 +64,8 @@ async function start() {
   await seedDoctors();
   await seedPatients();
   await seedDemoData();
+  await seedPromptAI();
+  await seedCIDReference();
 
   app.listen(PORT, () => {
     console.log(`PEP EMR server running on http://localhost:${PORT}`);
