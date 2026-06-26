@@ -5,6 +5,7 @@ import AtendimentoPage from "./pages/AtendimentoPage";
 import AgendaPage from "./pages/AgendaPage";
 import PatientsPage from "./pages/PatientsPage";
 import PerfilPage from "./pages/PerfilPage";
+import PlaceholderPage from "./pages/PlaceholderPage";
 
 export default function App() {
   return (
@@ -17,6 +18,19 @@ export default function App() {
             <Route path="/pacientes" element={<PatientsPage />} />
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/perfil/:tab" element={<PerfilPage />} />
+            <Route path="/estoque">
+              <Route path="movimentacoes" element={<PlaceholderPage />} />
+              <Route path="produtos" element={<PlaceholderPage />} />
+              <Route path="relatorios" element={<PlaceholderPage />} />
+            </Route>
+            <Route path="/financeiro">
+              <Route path="receitas-despesas" element={<PlaceholderPage />} />
+              <Route path="contas-pagar" element={<PlaceholderPage />} />
+              <Route path="contas-receber" element={<PlaceholderPage />} />
+              <Route path="orcamentos" element={<PlaceholderPage />} />
+              <Route path="gerar-recibo-nfe" element={<PlaceholderPage />} />
+              <Route path="relatorios" element={<PlaceholderPage />} />
+            </Route>
             <Route path="*" element={<Navigate to="/agenda" replace />} />
           </Route>
         </Routes>

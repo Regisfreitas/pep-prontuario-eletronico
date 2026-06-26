@@ -22,6 +22,7 @@ const googleRoutes = require("./routes/google");
 const patientsRoutes = require("./routes/patients");
 const integrationsRoutes = require("./routes/integrations");
 const profileRoutes = require("./routes/profile");
+const documentRoutes = require("./routes/documents");
 const { seedDemoData } = require("./controllers/agendaController");
 const { seedDoctors } = require("./services/doctorService");
 const { seedPatients } = require("./services/patientService");
@@ -29,6 +30,7 @@ const {
   seedPromptAI,
   seedCIDReference,
 } = require("./services/aiScribeSeedService");
+const { seedDocumentTemplates } = require("./services/documentSeedService");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -50,6 +52,7 @@ app.use("/api/agenda", agendaRoutes);
 app.use("/api/patients", patientsRoutes);
 app.use("/api/integrations", integrationsRoutes);
 app.use("/api", profileRoutes);
+app.use("/api", documentRoutes);
 app.use("/api", atendimentoRoutes);
 
 if (process.env.NODE_ENV === "production") {
@@ -66,6 +69,7 @@ async function start() {
   await seedDemoData();
   await seedPromptAI();
   await seedCIDReference();
+  await seedDocumentTemplates();
 
   app.listen(PORT, () => {
     console.log(`PEP EMR server running on http://localhost:${PORT}`);

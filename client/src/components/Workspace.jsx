@@ -3,6 +3,7 @@ import Header from "./Header";
 import WorkspaceSidebar from "./WorkspaceSidebar";
 import SubToolbar from "./SubToolbar";
 import RichTextEditor from "./RichTextEditor";
+import PrescriptionModal from "./PrescriptionModal";
 
 export default function Workspace({
   activeTab,
@@ -45,13 +46,19 @@ export default function Workspace({
             </p>
           </div>
 
-          <div className="flex-1 bg-white m-4 rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-            <RichTextEditor
-              key={activeTab}
-              value={currentText}
-              onChange={(html) => onDraftChange(activeTab, html)}
-              placeholder={`Digite o conteúdo de ${currentTab.shortLabel}...`}
-            />
+          <div
+            className={`flex-1 ${activeTab === "prescription" ? "" : "bg-white m-4 rounded-xl border border-slate-200 shadow-sm overflow-hidden"}`}
+          >
+            {activeTab === "prescription" ? (
+              <PrescriptionModal />
+            ) : (
+              <RichTextEditor
+                key={activeTab}
+                value={currentText}
+                onChange={(html) => onDraftChange(activeTab, html)}
+                placeholder={`Digite o conteúdo de ${currentTab.shortLabel}...`}
+              />
+            )}
           </div>
         </main>
       </div>

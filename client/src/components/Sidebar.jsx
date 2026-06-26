@@ -12,6 +12,17 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
+  Package,
+  ArrowLeftRight,
+  Pill,
+  BarChart3,
+  DollarSign,
+  TrendingUp,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Calculator,
+  Receipt,
+  PieChart,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -30,47 +41,199 @@ const NAV_ITEMS = [
   },
 ];
 
-const SUB_ITEMS = [
+const ACCORDIONS = [
   {
-    to: "/perfil/prescritor",
-    label: "Dados do Prescritor",
-    icon: UserRound,
-    testId: "submenu-dados-prescritor",
+    key: "perfil",
+    label: "Perfil",
+    icon: UserCog,
+    testId: "nav-link-perfil",
+    items: [
+      {
+        to: "/perfil/prescritor",
+        label: "Dados do Prescritor",
+        icon: UserRound,
+        testId: "submenu-dados-prescritor",
+      },
+      {
+        to: "/perfil/clinicas",
+        label: "Minhas Clínicas",
+        icon: Building2,
+        testId: "submenu-minhas-clinicas",
+      },
+      {
+        to: "/perfil/assinaturas",
+        label: "Planos e Assinaturas",
+        icon: CreditCard,
+        testId: "submenu-planos-assinaturas",
+      },
+      {
+        to: "/perfil/layouts",
+        label: "Meus Layouts",
+        icon: FileText,
+        testId: "submenu-meus-layouts",
+      },
+    ],
   },
   {
-    to: "/perfil/clinicas",
-    label: "Minhas Clínicas",
-    icon: Building2,
-    testId: "submenu-minhas-clinicas",
+    key: "estoque",
+    label: "Estoque",
+    icon: Package,
+    testId: "menu-estoque",
+    items: [
+      {
+        to: "/estoque/movimentacoes",
+        label: "Movimentações",
+        icon: ArrowLeftRight,
+        testId: "submenu-estoque-movimentacoes",
+      },
+      {
+        to: "/estoque/produtos",
+        label: "Produtos",
+        icon: Pill,
+        testId: "submenu-estoque-produtos",
+      },
+      {
+        to: "/estoque/relatorios",
+        label: "Relatórios",
+        icon: BarChart3,
+        testId: "submenu-estoque-relatorios",
+      },
+    ],
   },
   {
-    to: "/perfil/assinaturas",
-    label: "Planos e Assinaturas",
-    icon: CreditCard,
-    testId: "submenu-planos-assinaturas",
-  },
-  {
-    to: "/perfil/layouts",
-    label: "Meus Layouts",
-    icon: FileText,
-    testId: "submenu-meus-layouts",
+    key: "financeiro",
+    label: "Financeiro",
+    icon: DollarSign,
+    testId: "menu-financeiro",
+    items: [
+      {
+        to: "/financeiro/receitas-despesas",
+        label: "Receitas e Despesas",
+        icon: TrendingUp,
+        testId: "submenu-financeiro-receitas-despesas",
+      },
+      {
+        to: "/financeiro/contas-pagar",
+        label: "Contas a Pagar",
+        icon: ArrowDownCircle,
+        testId: "submenu-financeiro-contas-pagar",
+      },
+      {
+        to: "/financeiro/contas-receber",
+        label: "Contas a Receber",
+        icon: ArrowUpCircle,
+        testId: "submenu-financeiro-contas-receber",
+      },
+      {
+        to: "/financeiro/orcamentos",
+        label: "Orçamentos",
+        icon: Calculator,
+        testId: "submenu-financeiro-orcamentos",
+      },
+      {
+        to: "/financeiro/gerar-recibo-nfe",
+        label: "Gerar Recibo/NF-e",
+        icon: Receipt,
+        testId: "submenu-financeiro-gerar-recibo-nfe",
+      },
+      {
+        to: "/financeiro/relatorios",
+        label: "Relatórios",
+        icon: PieChart,
+        testId: "submenu-financeiro-relatorios",
+      },
+    ],
   },
 ];
 
+// ---------- Accordion subcomponent ----------
+
+function Accordion({ accordion, expanded, isOpen, onToggle }) {
+  const Icon = accordion.icon;
+
+  return (
+    <>
+      {expanded && (
+        <button
+          type="button"
+          data-testid={accordion.testId}
+          onClick={onToggle}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
+          <Icon size={20} className="shrink-0" aria-hidden="true" />
+          <span className="flex-1 text-left truncate">{accordion.label}</span>
+          <ChevronDown
+            size={16}
+            className={`shrink-0 transition-transform duration-300 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+      )}
+
+      {expanded && isOpen && (
+        <div className="space-y-1 overflow-hidden transition-all duration-300">
+          {accordion.items.map((item) => {
+            const SubIcon = item.icon;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                data-testid={item.testId}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                    isActive
+                      ? "bg-medical-50 text-medical-700 font-medium"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                  }`
+                }
+              >
+                {SubIcon && (
+                  <SubIcon size={16} className="shrink-0" aria-hidden="true" />
+                )}
+                {item.label}
+              </NavLink>
+            );
+          })}
+        </div>
+      )}
+
+      {!expanded && (
+        <button
+          type="button"
+          data-testid={accordion.testId}
+          onClick={onToggle}
+          className="flex items-center justify-center w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+        >
+          <Icon size={20} className="shrink-0" aria-hidden="true" />
+        </button>
+      )}
+    </>
+  );
+}
+
+// ---------- Main Sidebar ----------
+
 export default function Sidebar() {
   const [expanded, setExpanded] = useState(true);
-  const [perfilOpen, setPerfilOpen] = useState(false);
+  const [openMenus, setOpenMenus] = useState({});
   const location = useLocation();
 
-  // Auto-open perfil accordion when on a /perfil route
+  // Auto-open accordions when on their routes
   useEffect(() => {
-    if (location.pathname.startsWith("/perfil")) {
-      setPerfilOpen(true);
+    const next = { ...openMenus };
+    for (const acc of ACCORDIONS) {
+      if (location.pathname.startsWith(`/${acc.key}`)) {
+        next[acc.key] = true;
+      }
     }
+    setOpenMenus(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   const toggleSidebar = () => setExpanded((prev) => !prev);
-  const togglePerfil = () => setPerfilOpen((prev) => !prev);
+  const toggleMenu = (key) =>
+    setOpenMenus((prev) => ({ ...prev, [key]: !prev[key] }));
 
   return (
     <aside
@@ -132,64 +295,16 @@ export default function Sidebar() {
           );
         })}
 
-        {/* Perfil — Accordion trigger */}
-        {expanded && (
-          <button
-            type="button"
-            data-testid="nav-link-perfil"
-            onClick={togglePerfil}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-          >
-            <UserCog size={20} className="shrink-0" aria-hidden="true" />
-            <span className="flex-1 text-left truncate">Perfil</span>
-            <ChevronDown
-              size={16}
-              className={`shrink-0 transition-transform duration-300 ${
-                perfilOpen ? "rotate-180" : ""
-              }`}
-            />
-          </button>
-        )}
-
-        {/* Submenus — with collapse animation */}
-        {expanded && perfilOpen && (
-          <div className="space-y-1 overflow-hidden transition-all duration-300">
-            {SUB_ITEMS.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  data-testid={item.testId}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                      isActive
-                        ? "bg-medical-50 text-medical-700 font-medium"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
-                    }`
-                  }
-                >
-                  {Icon && (
-                    <Icon size={16} className="shrink-0" aria-hidden="true" />
-                  )}
-                  {item.label}
-                </NavLink>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Collapsed state — just an icon button */}
-        {!expanded && (
-          <button
-            type="button"
-            data-testid="nav-link-perfil"
-            onClick={togglePerfil}
-            className="flex items-center justify-center w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-          >
-            <UserCog size={20} className="shrink-0" aria-hidden="true" />
-          </button>
-        )}
+        {/* Accordion menus */}
+        {ACCORDIONS.map((acc) => (
+          <Accordion
+            key={acc.key}
+            accordion={acc}
+            expanded={expanded}
+            isOpen={!!openMenus[acc.key]}
+            onToggle={() => toggleMenu(acc.key)}
+          />
+        ))}
       </nav>
 
       {/* Footer */}
