@@ -88,7 +88,15 @@ async function start() {
     if (!process.env.MEMED_API_KEY) {
       console.warn("⚠ Memed Prescrição: MEMED_API_KEY não configurada");
     } else {
-      console.log("Memed integração configurada");
+      // Validar chaves na inicialização
+      const memedService = require("./services/memedService");
+      try {
+        const check = await memedService.checkKeyPair();
+        console.log(`Memed: chaves válidas${check?.data ? " ✅" : " ✅"}`);
+      } catch (err) {
+        console.warn(`⚠ Memed: chaves inválidas ou API offline — ${err.message}`);
+        console.warn("   Verifique MEMED_API_KEY e MEMED_SECRET_KEY no .env");
+      }
     }
   });
 }

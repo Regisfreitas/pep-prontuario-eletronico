@@ -101,13 +101,18 @@ function memedRequest(method, path, body = null, token = null) {
             console.warn(`Memed API detail [${path}]:`, json.detail);
 
           if (res.statusCode >= 400) {
+            const detail = Array.isArray(json.errors)
+              ? json.errors[0]?.detail || json.errors[0]?.title
+              : json.detail || json.message || json.error;
+
+            console.error(
+              `Memed API ${res.statusCode} [${path}]:`,
+              detail || JSON.stringify(json).slice(0, 300),
+            );
+
             const err = new Error(
-              Array.isArray(json.errors)
-                ? json.errors[0]?.detail || "Erro"
-                : json.detail ||
-                    json.message ||
-                    json.error ||
-                    `HTTP ${res.statusCode}`,
+              detail ||
+                `Memed API retornou erro ${res.statusCode}. Verifique as credenciais no .env.`,
             );
             err.statusCode = res.statusCode;
             err.body = json;
