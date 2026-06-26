@@ -14,13 +14,91 @@
 
 ---
 
-## DDL — Schema das Tabelas
+## Migrations
 
-O schema é definido no arquivo `server/migrations/001_initial_schema.sql` e aplicado automaticamente na inicialização do servidor.
+| # | Arquivo | Conteúdo |
+|---|---|---|
+| 001 | `001_initial_schema.sql` | Tabelas base: doctors, patients, crm_settings, atendimentos, attendance_file, agenda |
+| 002 | `002_memed_integration.sql` | Colunas Memed em doctors: `cpf`, `birth_date`, `first_name`, `last_name`, `crm`, `crm_uf`, `memed_token`, `memed_id` |
+| 003 | `003_memed_cache.sql` | Tabelas de cache: `memed_cidades`, `memed_especialidades` |
+| 004 | `004_profile_and_support.sql` | Tabelas de referência: `states`, `specialties` + colunas de perfil em doctors: `gender`, `email`, `phone`, `board_type`, `state_id`, `specialty_id`, `req_number` |
+
+---
+
+## Tabelas de Referência
+
+### `states`
+
+```sql
+CREATE TABLE IF NOT EXISTS states (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  abbreviation TEXT NOT NULL UNIQUE
+);
+```
+
+| Coluna | Tipo | Restrições |
+|---|---|---|
+| `id` | `SERIAL` | `PRIMARY KEY` |
+| `name` | `TEXT` | `NOT NULL` |
+| `abbreviation` | `TEXT` | `NOT NULL`, `UNIQUE` |
+
+**Dados:** 27 estados brasileiros (AC a TO).
+
+---
+
+### `specialties`
+
+```sql
+CREATE TABLE IF NOT EXISTS specialties (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE
+);
+```
+
+| Coluna | Tipo | Restrições |
+|---|---|---|
+| `id` | `SERIAL` | `PRIMARY KEY` |
+| `name` | `TEXT` | `NOT NULL`, `UNIQUE` |
+
+**Dados:** 33 especialidades médicas (Acupuntura a Urologia).
+
+---
+
+### `memed_cidades`
+
+Cache de cidades da API Memed (expira a cada 24h).
+
+```sql
+CREATE TABLE IF NOT EXISTS memed_cidades (
+  id SERIAL PRIMARY KEY,
+  nome TEXT NOT NULL,
+  uf TEXT NOT NULL,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+### `memed_especialidades`
+
+Cache de especialidades da API Memed (expira a cada 24h).
+
+```sql
+CREATE TABLE IF NOT EXISTS memed_especialidades (
+  id SERIAL PRIMARY KEY,
+  nome TEXT NOT NULL,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+---
+
+## DDL — Schema das Tabelas
 
 ### `doctors`
 
-Médicos cadastrados no sistema, com suporte a credenciais Google OAuth2.
+Médicos cadastrados no sistema — concentra dados pessoais e profissionais.
 
 ```sql
 CREATE TABLE IF NOT EXISTS doctors (
@@ -30,26 +108,59 @@ CREATE TABLE IF NOT EXISTS doctors (
   google_access_token TEXT,
   google_refresh_token TEXT,
   google_calendar_id  TEXT,
-  data_criacao        TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+  data_criacao        TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  -- Perfil pessoal (migration 002 / 004)
+  first_name          TEXT,
+  last_name           TEXT,
+  cpf                 TEXT,
+  birth_date          DATE,
+  gender              TEXT,
+  email               TEXT,
+  phone               TEXT,
+  -- Perfil profissional
+  board_type          TEXT DEFAULT 'CRM',
+  crm                 TEXT,
+  crm_uf              TEXT,
+  state_id            INTEGER REFERENCES states(id),
+  specialty_id        INTEGER REFERENCES specialties(id),
+  req_number          TEXT,
+  -- Memed
+  memed_token         TEXT,
+  memed_id            TEXT
 );
 ```
 
 | Coluna | Tipo | Restrições | Descrição |
 |---|---|---|---|
-| `id` | `SERIAL` | `PRIMARY KEY` | ID auto-incremento |
-| `nome` | `TEXT` | `NOT NULL` | Nome do médico |
+| `id` | `SERIAL` | `PRIMARY KEY` | ID auto-incremento (usado como external_id na Memed) |
+| `nome` | `TEXT` | `NOT NULL` | Nome completo (concatenado de first_name + last_name) |
 | `clinic_id` | `INTEGER` | `NOT NULL` (default 1) | ID da clínica |
+| `first_name` | `TEXT` | — | Nome (split) |
+| `last_name` | `TEXT` | — | Sobrenome (split) |
+| `cpf` | `TEXT` | — | CPF sem pontuação |
+| `birth_date` | `DATE` | — | Data de nascimento (obrigatório para Memed / RDC 1000/25) |
+| `gender` | `TEXT` | — | Sexo (Masculino / Feminino) |
+| `email` | `TEXT` | — | E-mail |
+| `phone` | `TEXT` | — | Telefone (digitos) |
+| `board_type` | `TEXT` | Default 'CRM' | Sigla do conselho (CRM, CRO, CRP, COREN) |
+| `crm` | `TEXT` | — | Número do conselho |
+| `crm_uf` | `TEXT` | — | UF do conselho |
+| `state_id` | `INTEGER` | `REFERENCES states(id)` | Estado (FK) |
+| `specialty_id` | `INTEGER` | `REFERENCES specialties(id)` | Especialidade (FK) |
+| `req_number` | `TEXT` | — | Número REQ |
 | `google_access_token` | `TEXT` | — | Token de acesso Google OAuth |
 | `google_refresh_token` | `TEXT` | — | Token de refresh Google OAuth |
 | `google_calendar_id` | `TEXT` | — | ID do calendário Google (default: "primary") |
+| `memed_token` | `TEXT` | — | Token de acesso Memed |
+| `memed_id` | `TEXT` | — | External ID na Memed |
 | `data_criacao` | `TIMESTAMPTZ` | `NOT NULL` (default now) | Data de criação |
 
 **Seed inicial (3 médicos):**
 ```sql
-INSERT INTO doctors (id, nome, clinic_id) VALUES
-  (1, 'Dr. Marco Silva', 1),
-  (2, 'teste Dr', 1),
-  (3, 'Dra. Ana Costa', 1);
+INSERT INTO doctors (id, nome, first_name, last_name, clinic_id, cpf, birth_date, crm, crm_uf) VALUES
+  (1, 'Dr. Marco Silva', 'Marco', 'Silva', 1, '12345678909', '1980-05-10', '123456', 'SP'),
+  (2, 'teste Dr', 'Teste', 'Dr', 1, '98765432100', '1975-11-22', '654321', 'SP'),
+  (3, 'Dra. Ana Costa', 'Ana', 'Costa', 1, '11122233344', '1985-03-15', '789012', 'RJ');
 ```
 
 ---
@@ -155,8 +266,6 @@ CREATE INDEX IF NOT EXISTS idx_atendimentos_paciente ON atendimentos (paciente_i
 | `consentimento_lgpd_draft` | `TEXT` | — | Rascunho (JSON) |
 | `data_hora_criacao` | `TIMESTAMPTZ` | `NOT NULL` (default now) | Data de criação |
 
-> Os 7 campos de rascunho armazenam JSON. Quando vazios, contêm `{"texto": ""}`.
-
 **Módulos (FIELD_MAP):**
 | Chave | Coluna no banco |
 |---|---|
@@ -189,16 +298,6 @@ CREATE TABLE IF NOT EXISTS attendance_file (
   data_hora_geracao             TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 ```
-
-| Coluna | Tipo | Restrições | Descrição |
-|---|---|---|---|
-| `id` | `SERIAL` | `PRIMARY KEY` | ID auto-incremento |
-| `atendimento_id` | `INTEGER` | `REFERENCES atendimentos(id) ON DELETE CASCADE` | Atendimento relacionado |
-| `medico_id` | `INTEGER` | `REFERENCES doctors(id)` | Médico |
-| `anamnese_url` | `TEXT` | — | URL do PDF gerado |
-| `orientacao_url` | `TEXT` | — | URL do PDF gerado |
-| ... | ... | ... | (mesmo padrão para os 7 módulos) |
-| `data_hora_geracao` | `TIMESTAMPTZ` | `NOT NULL` (default now) | Data de geração |
 
 > As URLs atualmente são mockadas: `https://storage.pep.local/atendimentos/{id}/{module}.pdf`
 
@@ -234,23 +333,7 @@ CREATE INDEX IF NOT EXISTS idx_agenda_clinic_date ON agenda (clinic_id, data_eve
 CREATE INDEX IF NOT EXISTS idx_agenda_doctor_date ON agenda (doctor_id, data_evento);
 ```
 
-| Coluna | Tipo | Restrições | Descrição |
-|---|---|---|---|
-| `id` | `SERIAL` | `PRIMARY KEY` | ID auto-incremento |
-| `doctor_id` | `INTEGER` | `REFERENCES doctors(id)` | Médico |
-| `clinic_id` | `INTEGER` | `NOT NULL` | ID da clínica |
-| `tipo_evento` | `TEXT` | `CHECK (IN ('CONSULTA','BLOQUEIO'))` | Tipo do evento |
-| `grupo_bloqueio_id` | `TEXT` | — | UUID que agrupa bloqueios recorrentes |
-| `data_evento` | `DATE` | `NOT NULL` | Data do evento |
-| `hora_inicio` | `TIME` | `NOT NULL` | Hora de início |
-| `hora_fim` | `TIME` | `NOT NULL` | Hora de fim |
-| `paciente_id` | `UUID` | `REFERENCES patients(id)` | Paciente (obrigatório em CONSULTA) |
-| `motivo_bloqueio` | `TEXT` | — | Motivo (obrigatório em BLOQUEIO) |
-| `google_event_id` | `TEXT` | — | ID do evento no Google Calendar |
-| `timezone` | `TEXT` | `NOT NULL` (default 'America/Sao_Paulo') | Fuso horário |
-| `data_criacao` | `TIMESTAMPTZ` | `NOT NULL` (default now) | Data de criação |
-
-**Check constraint** (validação a nível de banco):
+**Check constraint:**
 ```
 CONSULTA → paciente_id IS NOT NULL
 BLOQUEIO → paciente_id IS NULL AND motivo_bloqueio IS NOT NULL
@@ -264,7 +347,7 @@ BLOQUEIO → paciente_id IS NULL AND motivo_bloqueio IS NOT NULL
 
 ### `schema_migrations`
 
-Controle interno de migrations (gerenciada pelo `db.js`).
+Controle interno de migrations.
 
 ```sql
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -283,6 +366,8 @@ erDiagram
     doctors ||--o{ atendimentos : "medico_id"
     doctors ||--o{ attendance_file : "medico_id"
     doctors ||--o{ agenda : "doctor_id"
+    doctors ||--o| states : "state_id"
+    doctors ||--o| specialties : "specialty_id"
 
     patients ||--o{ atendimentos : "paciente_id"
     patients ||--o{ agenda : "paciente_id"
@@ -294,6 +379,8 @@ erDiagram
 
 | Origem | Destino | Tipo | Chave Estrageira |
 |---|---|---|---|
+| `doctors` | `states` | M:1 (opcional) | `state_id REFERENCES states(id)` |
+| `doctors` | `specialties` | M:1 (opcional) | `specialty_id REFERENCES specialties(id)` |
 | `atendimentos` | `doctors` | M:1 | `medico_id REFERENCES doctors(id)` |
 | `atendimentos` | `patients` | M:1 | `paciente_id REFERENCES patients(id)` |
 | `attendance_file` | `atendimentos` | 1:1 | `atendimento_id REFERENCES atendimentos(id) ON DELETE CASCADE` |
@@ -301,23 +388,16 @@ erDiagram
 | `agenda` | `doctors` | M:1 | `doctor_id REFERENCES doctors(id)` |
 | `agenda` | `patients` | M:1 (opcional) | `paciente_id REFERENCES patients(id)` |
 
-> A tabela `crm_settings` é independente (não possui chaves estrangeiras para outras tabelas).
+> As tabelas `crm_settings`, `memed_cidades` e `memed_especialidades` são independentes (sem FKs).
 
 ---
 
 ## Constraints Importantes
 
-1. **`agenda.CHECK`** — Garante integridade dos dados:
-   - Consultas sempre têm paciente
-   - Bloqueios nunca têm paciente e sempre têm motivo
-
+1. **`agenda.CHECK`** — Garante integridade: consultas têm paciente; bloqueios não têm paciente e têm motivo
 2. **`patients.email UNIQUE`** — Impede duplicidade de e-mail
-
-3. **`patients.document`** — CPF/documento sem constraint unique (campo livre)
-
-4. **`schema_migrations.filename UNIQUE`** — Garante que cada migration seja aplicada uma única vez
-
-5. **`attendance_file.atendimento_id ON DELETE CASCADE`** — Remove os arquivos se o atendimento for excluído
+3. **`schema_migrations.filename UNIQUE`** — Garante que cada migration seja aplicada uma única vez
+4. **`attendance_file.atendimento_id ON DELETE CASCADE`** — Remove arquivos se o atendimento for excluído
 
 ---
 
@@ -327,3 +407,4 @@ erDiagram
 - **Timestamps:** Todos usam `TIMESTAMPTZ` (com timezone) para consistência entre fusos
 - **Rascunhos:** Armazenados como `TEXT` contendo JSON serializado (`{"texto": "<html>"}`)
 - **Índices:** Apenas os essenciais estão criados (por clínica/data e médico/data na agenda, e por paciente nos atendimentos)
+- **Cache Memed:** Tabelas `memed_cidades` e `memed_especialidades` são limpas e repovoadas a cada 24h

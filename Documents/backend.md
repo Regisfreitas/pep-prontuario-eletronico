@@ -19,24 +19,31 @@
 ```
 server/
 ├── controllers/
-│   ├── agendaController.js     # CRUD agenda + seed
-│   ├── googleController.js     # OAuth Google
-│   ├── integrationsController.js # CRM Kommo
-│   └── patientsController.js   # CRUD pacientes
+│   ├── agendaController.js        # CRUD agenda + seed
+│   ├── googleController.js        # OAuth Google
+│   ├── integrationsController.js  # CRM Kommo + Memed (token, prescrições, protocolos, cache)
+│   ├── patientsController.js      # CRUD pacientes + busca + sugestão
+│   └── profileController.js       # Perfil médico (states, specialties, profile)
 ├── migrations/
-│   └── 001_initial_schema.sql  # DDL completo
+│   ├── 001_initial_schema.sql     # DDL base (doctors, patients, agenda, etc.)
+│   ├── 002_memed_integration.sql  # Colunas Memed (cpf, birth_date, crm, memed_token, etc.)
+│   ├── 003_memed_cache.sql        # Tabelas de cache (cidades, especialidades)
+│   └── 004_profile_and_support.sql # states, specialties + colunas de perfil
 ├── routes/
 │   ├── agenda.js               # /api/agenda/*
 │   ├── atendimento.js          # /api (iniciar, rascunho, finalizar)
 │   ├── google.js               # /api/google/*
-│   ├── integrations.js         # /api/integrations/*
-│   └── patients.js             # /api/patients/*
+│   ├── integrations.js         # /api/integrations/* (Kommo + Memed)
+│   ├── patients.js             # /api/patients/* (inclui /search, /suggested)
+│   └── profile.js              # /api/states, /api/specialties, /api/profile
 ├── services/
 │   ├── agendaSyncService.js    # Sincroniza eventos com Google Calendar
 │   ├── crmService.js           # CRUD credenciais Kommo
-│   ├── doctorService.js        # CRUD médicos + tokens Google
+│   ├── doctorService.js        # CRUD médicos + tokens Google + Memed
 │   ├── googleCalendarService.js # Criação/remoção de eventos no Google Calendar
-│   └── patientService.js       # CRUD pacientes + seed
+│   ├── memedService.js         # Integração Memed (profissionais, prescrições, protocolos, cache)
+│   ├── patientService.js       # CRUD pacientes + busca + sugestão + seed
+│   └── profileService.js       # Consulta/atualização de perfil (com transaction)
 ├── utils/
 │   ├── age.js                  # Cálculo de idade
 │   ├── generateBloqueioDates.js # Geração de datas para bloqueios recorrentes
@@ -79,7 +86,7 @@ Inicia um novo atendimento com rascunhos vazios.
 ```json
 {
   "medico_id": 1,
-  "paciente_id": "uuid-opcional"
+  "paciente_id": "uuid-do-paciente"
 }
 ```
 > Se `paciente_id` não for informado, o sistema usa o primeiro paciente cadastrado.
@@ -255,6 +262,32 @@ Cria bloqueio(s) de horário com suporte a recorrência.
 
 ### Pacientes
 
+#### `GET /api/patients/suggested`
+Retorna o paciente sugerido para o momento (próximo agendamento ou primeiro alfabético).
+
+**Resposta:**
+```json
+{
+  "id": "uuid",
+  "full_name": "Dara Amaral",
+  "birth_date": "1991-03-12",
+  "age": 34,
+  "document": "123.456.789-00"
+}
+```
+
+#### `GET /api/patients/search?q=...`
+Busca pacientes por nome ou documento.
+
+**Resposta:**
+```json
+{
+  "patients": [
+    { "id": "uuid", "full_name": "Dara Amaral", "birth_date": "1991-03-12", "age": 34, "document": "123.456.789-00" }
+  ]
+}
+```
+
 #### `GET /api/patients`
 Lista todos os pacientes (resumo: id, nome, idade).
 
@@ -308,6 +341,79 @@ Cadastra um novo paciente.
 
 ---
 
+### Perfil do Médico
+
+#### `GET /api/states`
+Lista os 27 estados brasileiros para dropdown.
+
+**Resposta:**
+```json
+{
+  "states": [
+    { "id": 1, "name": "Acre", "abbreviation": "AC" },
+    "..."
+  ]
+}
+```
+
+#### `GET /api/specialties`
+Lista as especialidades médicas.
+
+**Resposta:**
+```json
+{
+  "specialties": [
+    { "id": 1, "name": "Acupuntura" },
+    "..."
+  ]
+}
+```
+
+#### `GET /api/profile?doctor_id=1`
+Perfil completo do médico (JOIN com states e specialties).
+
+**Resposta:**
+```json
+{
+  "id": 1,
+  "nome": "Dr. Marco Silva",
+  "first_name": "Marco",
+  "last_name": "Silva",
+  "cpf": "12345678909",
+  "birth_date": "1980-05-10",
+  "gender": "Masculino",
+  "email": "marco@example.com",
+  "phone": "11987654321",
+  "board_type": "CRM",
+  "crm": "123456",
+  "crm_uf": "SP",
+  "req_number": null,
+  "state_id": 25,
+  "specialty_id": 5,
+  "specialty_name": "Cardiologia",
+  "state_abbreviation": "SP"
+}
+```
+
+#### `PATCH /api/profile`
+Atualiza os dados do perfil (usa **transaction**). Valida CPF, birth_date e crm obrigatórios.
+
+**Payload:**
+```json
+{
+  "doctor_id": 1,
+  "first_name": "Marco",
+  "gender": "Masculino",
+  "email": "marco@example.com",
+  "state_id": 25,
+  "specialty_id": 5
+}
+```
+
+**Resposta:** Perfil atualizado (mesmo formato do GET).
+
+---
+
 ### Google Calendar (OAuth2)
 
 #### `GET /api/google/auth/:doctor_id`
@@ -341,10 +447,10 @@ Remove os tokens Google do médico.
 
 ---
 
-### Integrações
+### Integrações — Kommo
 
 #### `POST /api/integrations/kommo/connect`
- Salva ou atualiza credenciais de integração com o CRM Kommo.
+Salva ou atualiza credenciais de integração com o CRM Kommo.
 
 **Payload:**
 ```json
@@ -366,28 +472,80 @@ Remove os tokens Google do médico.
 
 ---
 
+### Integrações — Memed (Prescrição Digital)
+
+#### `GET /api/integrations/memed/token?doctor_id=1`
+Obtém ou cria o token do médico na Memed (com validação via GET + cadastro via POST).
+
+**Resposta:**
+```json
+{
+  "memed_token": "token-temporario",
+  "memed_id": "external-id"
+}
+```
+
+#### `GET /api/integrations/memed/prescriptions/:doctorId`
+Histórico de prescrições do médico.
+
+#### `GET /api/integrations/memed/prescriptions/:doctorId/:prescriptionId/receita`
+Recupera o link da Receita Digital.
+
+#### `GET /api/integrations/memed/prescriptions/:doctorId/:prescriptionId/pdf`
+Recupera a URL do PDF da prescrição.
+
+#### `POST /api/integrations/memed/protocolos`
+Cria um protocolo para um médico específico.
+
+#### `POST /api/integrations/memed/protocolos/parceiros`
+Cria protocolos para todos os prescritores parceiros.
+
+#### `PATCH /api/integrations/memed/opcoes-receituario/:doctorId`
+Atualiza opções de impressão do receituário.
+
+#### `POST /api/integrations/memed/opcoes-receituario/:doctorId/upload-template`
+Upload de template PDF (papel timbrado) para recorte automático.
+
+#### `GET /api/integrations/memed/cidades`
+Lista de cidades (cache de 24h na tabela `memed_cidades`).
+
+#### `GET /api/integrations/memed/especialidades`
+Lista de especialidades (cache de 24h na tabela `memed_especialidades`).
+
+---
+
 ## Integração CRM Kommo
 
 A integração com **Kommo** (antigo amoCRM) funciona via API Key + subdomínio:
 
 1. O usuário informa `api_key` e `subdomain` no modal `CrmConnectModal`
 2. O backend armazena em `crm_settings` com `provider_name = 'kommo'` (upsert)
-3. O campo `kommo_id` na tabela `patients` é reservado para armazenar o ID do contato no Kommo, permitindo futura sincronização bidirecional
+3. O campo `kommo_id` na tabela `patients` é reservado para armazenar o ID do contato no Kommo
 
-Atualmente a integração é **unidirecional**: apenas armazena as credenciais. A lógica de sincronização de pacientes com o Kommo ainda não foi implementada.
+Atualmente a integração é **unidirecional**: apenas armazena as credenciais.
+
+---
+
+## Integração Memed (Prescrição Digital)
+
+O `memedService.js` centraliza toda a comunicação com a API Memed:
+
+- **Auth:** Basic Auth (`MEMED_API_KEY : MEMED_SECRET_KEY`)
+- **URL:** `integrations.api.memed.com.br/v1` (dev) / `api.memed.com.br/v1` (production)
+- **Fluxo do médico:** `GET /sinapse-prescricao/usuarios/{id}` → 404 → `POST /sinapse-prescricao/usuarios`
+- **RDC 1000/25:** `cpf` e `data_nascimento` obrigatórios no cadastro
+- **External ID:** UUID do médico (`memed_id`), nunca o CPF
 
 ---
 
 ## Google Calendar (Sincronização)
 
-O fluxo de sincronização com Google Agenda:
-
 1. **Auth:** O médico autoriza via OAuth2 (botão "Conectar" no `AgendaHeader`)
-2. **Tokens:** Tokens (access + refresh) são armazenados na tabela `doctors`
-3. **Criação de evento:** Ao criar consulta/bloqueio, o `agendaSyncService` tenta criar o evento no Google Calendar
-4. **Retry com backoff:** O cliente HTTP raw (`googleApiClient.js`) implementa retry com backoff progressivo (até 4 tentativas)
-5. **Refresh automático:** Se o access token expirar (401), o sistema usa o refresh token para obter um novo
-6. **Recuperação:** Em caso de resposta incompleta, tenta recuperar o evento já criado via `privateExtendedProperty`
+2. **Tokens:** Armazenados na tabela `doctors`
+3. **Criação de evento:** `agendaSyncService` tenta criar o evento no Google Calendar
+4. **Retry com backoff:** Cliente HTTP raw com até 4 tentativas
+5. **Refresh automático:** Se o access token expirar (401), usa refresh token
+6. **Recuperação:** Busca evento já criado via `privateExtendedProperty`
 
 ---
 
@@ -395,7 +553,7 @@ O fluxo de sincronização com Google Agenda:
 
 Ao iniciar, o servidor executa automaticamente:
 
-1. **`initDb()`** — Aplica migrations pendentes (`001_initial_schema.sql`)
-2. **`seedDoctors()`** — Cria 3 médicos: Dr. Marco Silva (id:1), teste Dr (id:2), Dra. Ana Costa (id:3)
+1. **`initDb()`** — Aplica migrations pendentes (001 a 004)
+2. **`seedDoctors()`** — Cria 3 médicos com CPF, CRM, UF e data de nascimento
 3. **`seedPatients()`** — Cria 4 pacientes demo (Dara Amaral, Teste memed, João Pedro, Maria Santos)
 4. **`seedDemoData()`** — Cria 3 consultas e 1 bloqueio de exemplo na agenda
