@@ -202,6 +202,36 @@ async function getOrRegisterProfessional(doctor) {
   return { memed_id: externalId, memed_token: token };
 }
 
+/**
+ * Atualiza profissional existente via PATCH.
+ * NÃO incluir external_id a menos que deseje alterá-lo.
+ */
+async function updateProfessional(externalId, attributes) {
+  const payload = {
+    data: {
+      type: "usuarios",
+      attributes: attributes,
+    },
+  };
+  const { body } = await memedRequest(
+    "PATCH",
+    `/sinapse-prescricao/usuarios/${externalId}`,
+    payload,
+  );
+  return body;
+}
+
+/**
+ * Exclui profissional (irreversível).
+ */
+async function deleteProfessional(externalId) {
+  const { body } = await memedRequest(
+    "DELETE",
+    `/sinapse-prescricao/usuarios/${externalId}`,
+  );
+  return body;
+}
+
 // ---------------------------------------------------------------------------
 // 3. Prescrições
 // ---------------------------------------------------------------------------
@@ -391,6 +421,8 @@ module.exports = {
   isConfigured,
   checkKeyPair,
   getOrRegisterProfessional,
+  updateProfessional,
+  deleteProfessional,
   getPrescriptions,
   getPrescriptionById,
   deletePrescription,
