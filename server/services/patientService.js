@@ -1,32 +1,32 @@
-const { query } = require('../db');
-const { calculateAge, toDateString } = require('../utils/age');
+const { query } = require("../db");
+const { calculateAge, toDateString } = require("../utils/age");
 
 const DEMO_PATIENTS = [
   {
-    id: 'a1111111-1111-4111-8111-111111111111',
-    full_name: 'Dara Amaral',
-    birth_date: '1991-03-12',
-    email: 'dara.amaral@example.com',
-    phone: '(11) 98765-4321',
-    document: '123.456.789-00',
+    id: "a1111111-1111-4111-8111-111111111111",
+    full_name: "Dara Amaral",
+    birth_date: "1991-03-12",
+    email: "dara.amaral@example.com",
+    phone: "(11) 98765-4321",
+    document: "123.456.789-00",
   },
   {
-    id: 'a2222222-2222-4222-8222-222222222222',
-    full_name: 'Teste memed',
-    birth_date: '1985-07-20',
-    email: 'teste.memed@example.com',
+    id: "a2222222-2222-4222-8222-222222222222",
+    full_name: "Teste memed",
+    birth_date: "1985-07-20",
+    email: "teste.memed@example.com",
   },
   {
-    id: 'a3333333-3333-4333-8333-333333333333',
-    full_name: 'João Pedro',
-    birth_date: '2010-01-15',
-    email: 'joao.pedro@example.com',
+    id: "a3333333-3333-4333-8333-333333333333",
+    full_name: "João Pedro",
+    birth_date: "2010-01-15",
+    email: "joao.pedro@example.com",
   },
   {
-    id: 'a4444444-4444-4444-8444-444444444444',
-    full_name: 'Maria Santos',
-    birth_date: '1978-11-03',
-    email: 'maria.santos@example.com',
+    id: "a4444444-4444-4444-8444-444444444444",
+    full_name: "Maria Santos",
+    birth_date: "1978-11-03",
+    email: "maria.santos@example.com",
   },
 ];
 
@@ -43,13 +43,13 @@ function mapPatientRow(row) {
     created_at: row.created_at,
     updated_at: row.updated_at,
     age: calculateAge(row.birth_date),
-    integration_status: row.kommo_id ? 'Integrado ao Kommo' : 'Não integrado',
+    integration_status: row.kommo_id ? "Integrado ao Kommo" : "Não integrado",
   };
 }
 
 async function listPatients() {
   const { rows } = await query(
-    'SELECT id, full_name, birth_date FROM patients ORDER BY full_name ASC'
+    "SELECT id, full_name, birth_date FROM patients ORDER BY full_name ASC",
   );
   return rows.map((row) => ({
     id: row.id,
@@ -60,32 +60,100 @@ async function listPatients() {
 }
 
 async function getPatientById(id) {
-  const { rows } = await query('SELECT * FROM patients WHERE id = $1', [id]);
+  const { rows } = await query("SELECT * FROM patients WHERE id = $1", [id]);
   return mapPatientRow(rows[0]);
 }
 
-async function createPatient({ full_name, birth_date, email, phone, document }) {
+async function createPatient({
+  full_name,
+  birth_date,
+  email,
+  phone,
+  document,
+}) {
   const { rows } = await query(
     `INSERT INTO patients (full_name, birth_date, email, phone, document)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [full_name, birth_date, email || null, phone || null, document || null]
+    [full_name, birth_date, email || null, phone || null, document || null],
   );
   return mapPatientRow(rows[0]);
 }
 
 async function getPatientsMap() {
-  const { rows } = await query('SELECT id, full_name FROM patients');
+  const { rows } = await query("SELECT id, full_name FROM patients");
   return Object.fromEntries(rows.map((r) => [r.id, r.full_name]));
 }
 
 async function getFirstPatientId() {
-  const { rows } = await query('SELECT id FROM patients ORDER BY full_name ASC LIMIT 1');
+  const { rows } = await query(
+    "SELECT id FROM patients ORDER BY full_name ASC LIMIT 1",
+  );
   return rows[0]?.id ?? null;
 }
 
+async function searchPatients(searchTerm) {
+  const { rows } = await query(
+    `SELECT id, full_name, birth_date, document
+     FROM patients
+     WHERE full_name ILIKE $1
+        OR document ILIKE $1
+     ORDER BY full_name ASC
+     LIMIT 20`,
+    [`%${searchTerm}%`],
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    full_name: row.full_name,
+    birth_date: toDateString(row.birth_date),
+    age: calculateAge(row.birth_date),
+    document: row.document,
+  }));
+}
+
+async function getSuggestedPatient() {
+  // Priority 1: next appointment today
+  const { rows: agendaRows } = await query(
+    `SELECT p.id, p.full_name, p.birth_date, p.document
+     FROM patients p
+     JOIN agenda a ON a.paciente_id = p.id
+     WHERE a.data_evento = CURRENT_DATE
+       AND a.hora_inicio >= CURRENT_TIME
+       AND a.tipo_evento = 'CONSULTA'
+     ORDER BY a.hora_inicio ASC
+     LIMIT 1`,
+  );
+
+  if (agendaRows.length > 0) {
+    const row = agendaRows[0];
+    return {
+      id: row.id,
+      full_name: row.full_name,
+      birth_date: toDateString(row.birth_date),
+      age: calculateAge(row.birth_date),
+      document: row.document,
+    };
+  }
+
+  // Priority 2: first patient alphabetically
+  const { rows: patientRows } = await query(
+    "SELECT id, full_name, birth_date, document FROM patients ORDER BY full_name ASC LIMIT 1",
+  );
+
+  if (patientRows.length === 0) return null;
+
+  const row = patientRows[0];
+  return {
+    id: row.id,
+    full_name: row.full_name,
+    birth_date: toDateString(row.birth_date),
+    age: calculateAge(row.birth_date),
+    document: row.document,
+  };
+}
+
 async function seedPatients() {
-  const { rows } = await query('SELECT COUNT(*)::int AS n FROM patients');
+  const { rows } = await query("SELECT COUNT(*)::int AS n FROM patients");
   if (rows[0].n > 0) return;
 
   for (const patient of DEMO_PATIENTS) {
@@ -100,7 +168,7 @@ async function seedPatients() {
         patient.email,
         patient.phone ?? null,
         patient.document ?? null,
-      ]
+      ],
     );
   }
 }
@@ -111,6 +179,8 @@ module.exports = {
   createPatient,
   getPatientsMap,
   getFirstPatientId,
+  searchPatients,
+  getSuggestedPatient,
   seedPatients,
   DEMO_PATIENTS,
 };

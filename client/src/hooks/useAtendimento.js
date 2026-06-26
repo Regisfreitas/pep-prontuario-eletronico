@@ -78,14 +78,14 @@ export function useAtendimento() {
     [clearDebounce, saveDraft],
   );
 
-  const iniciarAtendimento = useCallback(async () => {
+  const iniciarAtendimento = useCallback(async (pacienteId) => {
     setError(null);
     setSaveStatus("saving");
     try {
       const res = await fetch(`${API}/iniciar`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ medico_id: 1 }),
+        body: JSON.stringify({ medico_id: 1, paciente_id: pacienteId }),
       });
 
       if (!res.ok) {

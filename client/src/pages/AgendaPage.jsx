@@ -85,11 +85,7 @@ export default function AgendaPage() {
         onToday={agenda.goToday}
       />
 
-      <DoctorTabs
-        medicos={agenda.medicos}
-        activeDoctorId={agenda.doctorFilter}
-        onSelect={agenda.setDoctorFilter}
-      />
+      <DoctorTabs medicos={agenda.medicos} />
 
       {agenda.loading && (
         <div className="px-6 py-2 text-xs text-slate-500 animate-pulse">

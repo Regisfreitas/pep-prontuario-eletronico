@@ -1,7 +1,7 @@
 const VIEWS = [
-  { id: 'month', label: 'Mês' },
-  { id: 'week', label: 'Semana' },
-  { id: 'day', label: 'Dia' },
+  { id: "month", label: "Mês" },
+  { id: "week", label: "Semana" },
+  { id: "day", label: "Dia" },
 ];
 
 export default function CalendarToolbar({
@@ -16,16 +16,11 @@ export default function CalendarToolbar({
       <div className="flex items-center gap-2">
         <button
           type="button"
+          data-testid="btn-today"
           onClick={onToday}
           className="px-3 py-1.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:bg-slate-50"
         >
           Hoje
-        </button>
-        <button
-          type="button"
-          className="px-3 py-1.5 text-sm font-medium text-slate-700 border border-slate-200 rounded-md hover:bg-slate-50"
-        >
-          Filtro de Exibição
         </button>
       </div>
 
@@ -35,8 +30,18 @@ export default function CalendarToolbar({
           onClick={() => onNavigate(-1)}
           className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
         <span className="text-sm font-semibold text-slate-800 min-w-[200px] text-center capitalize">
@@ -47,8 +52,18 @@ export default function CalendarToolbar({
           onClick={() => onNavigate(1)}
           className="p-1.5 text-slate-600 hover:bg-slate-100 rounded-md"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>
@@ -61,8 +76,8 @@ export default function CalendarToolbar({
             onClick={() => onViewChange(v.id)}
             className={`px-4 py-1.5 text-sm font-medium transition-colors ${
               view === v.id
-                ? 'bg-medical-600 text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-50'
+                ? "bg-medical-600 text-white"
+                : "bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
             {v.label}
