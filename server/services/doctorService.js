@@ -88,8 +88,7 @@ async function getOrCreateMemedToken(doctorId) {
     throw new Error("Médico não encontrado");
   }
 
-  // Mesmo que já tenha token, revalida via GET para garantir que é válido.
-  // Se a Memed retornar 404 (usuário removido), refaz o cadastro.
+  // Sempre revalida via GET (não é estático). Se 404, refaz cadastro.
   const registration = await memedService.getOrRegisterProfessional(doctor);
 
   if (!registration.memed_token) {
