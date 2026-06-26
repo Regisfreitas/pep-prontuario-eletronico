@@ -14,6 +14,7 @@ export default function AtendimentoPage() {
     finalizing,
     finalizedUrls,
     finalizedSigned,
+    pacienteId,
     iniciarAtendimento,
     updateDraft,
     switchTab,
