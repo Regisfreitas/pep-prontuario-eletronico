@@ -7,6 +7,7 @@ import PatientsPage from "./pages/PatientsPage";
 import PerfilPage from "./pages/PerfilPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import MovimentacoesEstoque from "./pages/MovimentacoesEstoque";
+import ProdutosEstoque from "./pages/ProdutosEstoque";
 
 export default function App() {
   return (
@@ -21,7 +22,7 @@ export default function App() {
             <Route path="/perfil/:tab" element={<PerfilPage />} />
             <Route path="/estoque">
               <Route path="movimentacoes" element={<MovimentacoesEstoque />} />
-              <Route path="produtos" element={<PlaceholderPage />} />
+              <Route path="produtos" element={<ProdutosEstoque />} />
               <Route path="relatorios" element={<PlaceholderPage />} />
             </Route>
             <Route path="/financeiro">

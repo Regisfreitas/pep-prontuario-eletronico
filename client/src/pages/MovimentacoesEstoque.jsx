@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { apiUrl } from "../config/api";
 import LoadingSpinner from "../components/patients/LoadingSpinner";
 import ModalNovaEntrada from "../components/ModalNovaEntrada";
+import ModalNovaSaida from "../components/ModalNovaSaida";
+import ModalCadastrarProduto from "../components/ModalCadastrarProduto";
+import ModalEntradaAuto from "../components/ModalEntradaAuto";
 
 const SITUACAO_CLASSES = {
   normal: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -30,6 +33,10 @@ export default function MovimentacoesEstoque() {
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
   const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
+  const [modalSaidaAberto, setModalSaidaAberto] = useState(false);
+  const [modalCadastroAberto, setModalCadastroAberto] = useState(false);
+  const [produtoRecemCriado, setProdutoRecemCriado] = useState(null);
+  const [modalEntradaAutoAberto, setModalEntradaAutoAberto] = useState(false);
 
   const carregar = useCallback(async () => {
     setLoading(true);
@@ -144,6 +151,7 @@ export default function MovimentacoesEstoque() {
           </button>
           <button
             type="button"
+            onClick={() => setModalSaidaAberto(true)}
             className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-sm"
           >
             <svg
@@ -273,6 +281,38 @@ export default function MovimentacoesEstoque() {
         isOpen={modalEntradaAberto}
         onClose={() => setModalEntradaAberto(false)}
         onSuccess={carregar}
+        onProdutoNaoCadastrado={() => {
+          setModalCadastroAberto(true);
+        }}
+      />
+      <ModalNovaSaida
+        isOpen={modalSaidaAberto}
+        onClose={() => setModalSaidaAberto(false)}
+        onSuccess={carregar}
+      />
+      <ModalCadastrarProduto
+        isOpen={modalCadastroAberto}
+        onClose={() => setModalCadastroAberto(false)}
+        onSuccess={carregar}
+        onProductCreated={(data) => {
+          setProdutoRecemCriado(data);
+          setModalCadastroAberto(false);
+          setModalEntradaAutoAberto(true);
+        }}
+      />
+      <ModalEntradaAuto
+        isOpen={modalEntradaAutoAberto}
+        produto={produtoRecemCriado}
+        onClose={() => {
+          setModalEntradaAutoAberto(false);
+          setProdutoRecemCriado(null);
+          carregar();
+        }}
+        onFinalizar={() => {
+          setModalEntradaAutoAberto(false);
+          setProdutoRecemCriado(null);
+          carregar();
+        }}
       />
     </div>
   );

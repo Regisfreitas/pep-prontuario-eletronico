@@ -1,73 +1,231 @@
 const { query } = require("../db");
 
 async function seedEstoque() {
-  const { rows } = await query("SELECT COUNT(*)::int AS n FROM estoque_produtos");
-  if (rows[0].n > 0) return;
+  const { rows } = await query(
+    "SELECT COUNT(*)::int AS n FROM estoque_produtos",
+  );
+  if (rows[0].n >= 10) return;
+  // If old seed inserted fewer products, clean and re-seed
+  if (rows[0].n > 0 && rows[0].n < 10) {
+    await query("DELETE FROM estoque_saidas");
+    await query("DELETE FROM estoque_entradas");
+    await query("DELETE FROM estoque_produtos");
+  }
 
   // Produtos
   const produtos = [
-    { id: "a0000001-0000-4000-8000-000000000001", nome: "Lidocaína 2%", descricao: "Anestésico local 2% sem vasoconstritor", unidade: "ml", saldo_atual: 50, saldo_minimo: 20, saldo_ideal: 100 },
-    { id: "a0000001-0000-4000-8000-000000000002", nome: "Seringa 5ml", descricao: "Seringa descartável 5ml com agulha", unidade: "un", saldo_atual: 8, saldo_minimo: 30, saldo_ideal: 80, situacao: "baixo" },
-    { id: "a0000001-0000-4000-8000-000000000003", nome: "Gaze Estéril", descricao: "Pacote com 10 gazes estéreis 7,5cm", unidade: "pc", saldo_atual: 0, saldo_minimo: 10, saldo_ideal: 50, situacao: "esgotado" },
+    {
+      id: "a0000001-0000-4000-8000-000000000001",
+      codigo: "MED001",
+      nome: "Lidocaína 2%",
+      descricao: "Anestésico local injetável",
+      unidade: "ml",
+      embalagem: "Frasco 20ml",
+      lote: "L20260601",
+      vencimento: "2027-06-01",
+      categoria: "Medicamento",
+      fornecedor: "DentalMed Ltda",
+      saldo_atual: 15,
+      saldo_minimo: 5,
+      saldo_ideal: 20,
+      situacao: "normal",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000002",
+      codigo: "MED002",
+      nome: "Amoxicilina 500mg",
+      descricao: "Antibiótico oral",
+      unidade: "un",
+      embalagem: "Caixa com 21 comprimidos",
+      lote: "AMX20260310",
+      vencimento: "2027-03-10",
+      categoria: "Medicamento",
+      fornecedor: "FarmaBrasil",
+      saldo_atual: 8,
+      saldo_minimo: 5,
+      saldo_ideal: 15,
+      situacao: "normal",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000003",
+      codigo: "MED003",
+      nome: "Dipirona Sódica 1g/2ml",
+      descricao: "Analgésico e antitérmico injetável",
+      unidade: "un",
+      embalagem: "Ampola 2ml",
+      lote: "DP20260520",
+      vencimento: "2027-05-20",
+      categoria: "Medicamento",
+      fornecedor: "PharmaLife",
+      saldo_atual: 2,
+      saldo_minimo: 5,
+      saldo_ideal: 20,
+      situacao: "baixo",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000004",
+      codigo: "CIR001",
+      nome: "Fio de Sutura Nylon 3-0",
+      descricao: "Fio de sutura não absorvível monofilamento",
+      unidade: "un",
+      embalagem: "Envelope com 12 unidades",
+      lote: "SUT20260315",
+      vencimento: "2028-03-15",
+      categoria: "Material Cirúrgico",
+      fornecedor: "Suturas Brasil",
+      saldo_atual: 3,
+      saldo_minimo: 5,
+      saldo_ideal: 15,
+      situacao: "baixo",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000005",
+      codigo: "CIR002",
+      nome: "Luva Cirúrgica Estéril Tamanho M",
+      descricao: "Luva de látex estéril descartável",
+      unidade: "un",
+      embalagem: "Caixa com 50 pares",
+      lote: "LV20260401",
+      vencimento: "2029-04-01",
+      categoria: "Material Cirúrgico",
+      fornecedor: "MedEquip",
+      saldo_atual: 0,
+      saldo_minimo: 3,
+      saldo_ideal: 10,
+      situacao: "esgotado",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000006",
+      codigo: "CIR003",
+      nome: "Seringa Descartável 5ml",
+      descricao: "Seringa com agulha 25x7",
+      unidade: "un",
+      embalagem: "Caixa com 100 unidades",
+      lote: null,
+      vencimento: null,
+      categoria: "Material Cirúrgico",
+      fornecedor: "MedEquip",
+      saldo_atual: 250,
+      saldo_minimo: 100,
+      saldo_ideal: 300,
+      situacao: "normal",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000007",
+      codigo: "MED004",
+      nome: "Soro Fisiológico 0,9% 250ml",
+      descricao: "Solução salina para infusão",
+      unidade: "un",
+      embalagem: "Bolsa 250ml",
+      lote: "SF20260610",
+      vencimento: "2028-06-10",
+      categoria: "Medicamento",
+      fornecedor: "PharmaLife",
+      saldo_atual: 40,
+      saldo_minimo: 20,
+      saldo_ideal: 50,
+      situacao: "normal",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000008",
+      codigo: "LIM001",
+      nome: "Álcool Etílico 70%",
+      descricao: "Antisséptico para superfícies e mãos",
+      unidade: "un",
+      embalagem: "Galão 5 litros",
+      lote: null,
+      vencimento: null,
+      categoria: "Material de Limpeza",
+      fornecedor: "CleanMax",
+      saldo_atual: 8,
+      saldo_minimo: 3,
+      saldo_ideal: 10,
+      situacao: "normal",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000009",
+      codigo: "LIM002",
+      nome: "Desinfetante Hospitalar",
+      descricao: "Desinfetante concentrado para pisos e superfícies",
+      unidade: "un",
+      embalagem: "Frasco 1 litro",
+      lote: "DH20260115",
+      vencimento: "2027-01-15",
+      categoria: "Material de Limpeza",
+      fornecedor: "CleanMax",
+      saldo_atual: 1,
+      saldo_minimo: 3,
+      saldo_ideal: 8,
+      situacao: "baixo",
+    },
+    {
+      id: "a0000001-0000-4000-8000-000000000010",
+      codigo: "ESC001",
+      nome: "Papel A4 75g",
+      descricao: "Resma de papel branco para impressão",
+      unidade: "un",
+      embalagem: "Pacote com 500 folhas",
+      lote: null,
+      vencimento: null,
+      categoria: "Material de Escritório",
+      fornecedor: "OfficeMax",
+      saldo_atual: 12,
+      saldo_minimo: 5,
+      saldo_ideal: 20,
+      situacao: "normal",
+    },
   ];
 
   for (const p of produtos) {
     await query(
-      `INSERT INTO estoque_produtos (id, clinic_id, nome, descricao, unidade, saldo_atual, saldo_minimo, saldo_ideal, situacao)
-       VALUES ($1, 1, $2, $3, $4, $5, $6, $7, COALESCE($8, 'normal'))`,
-      [p.id, p.nome, p.descricao || null, p.unidade, p.saldo_atual, p.saldo_minimo, p.saldo_ideal, p.situacao || "normal"]
+      `INSERT INTO estoque_produtos (id, clinic_id, codigo, nome, descricao, unidade, embalagem, lote, vencimento, categoria, fornecedor, saldo_atual, saldo_minimo, saldo_ideal, situacao, is_ativo)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, COALESCE($15, 'normal'), true)`,
+      [
+        p.id,
+        1,
+        p.codigo || null,
+        p.nome,
+        p.descricao || null,
+        p.unidade,
+        p.embalagem || null,
+        p.lote || null,
+        p.vencimento || null,
+        p.categoria || null,
+        p.fornecedor || null,
+        p.saldo_atual,
+        p.saldo_minimo,
+        p.saldo_ideal,
+        p.situacao || "normal",
+      ],
     );
   }
 
-  // Entradas
-  const entradas = [
-    { produto_id: produtos[0].id, quantidade: 30, data: "2026-06-20", obs: "Compra fornecedor ABC" },
-    { produto_id: produtos[0].id, quantidade: 20, data: "2026-06-25", obs: "Reposição" },
-    { produto_id: produtos[1].id, quantidade: 50, data: "2026-06-18", obs: "Pedido mensal" },
-    { produto_id: produtos[1].id, quantidade: 20, data: "2026-06-22", obs: null },
-    { produto_id: produtos[2].id, quantidade: 100, data: "2026-06-15", obs: "Compra inicial" },
-  ];
-  for (const e of entradas) {
-    await query(
-      `INSERT INTO estoque_entradas (clinic_id, produto_id, quantidade, data_entrada, observacao)
-       VALUES (1, $1, $2, $3, $4)`,
-      [e.produto_id, e.quantidade, e.data, e.obs]
-    );
-  }
-
-  // Saídas
-  const saidas = [
-    { produto_id: produtos[0].id, quantidade: 5, data: "2026-06-21", obs: "Procedimento 001" },
-    { produto_id: produtos[0].id, quantidade: 3, data: "2026-06-22", obs: "Procedimento 002" },
-    { produto_id: produtos[0].id, quantidade: 2, data: "2026-06-26", obs: null },
-    { produto_id: produtos[1].id, quantidade: 10, data: "2026-06-19", obs: "Uso diário" },
-    { produto_id: produtos[1].id, quantidade: 8, data: "2026-06-20", obs: null },
-    { produto_id: produtos[1].id, quantidade: 12, data: "2026-06-23", obs: "Procedimento 003" },
-    { produto_id: produtos[1].id, quantidade: 15, data: "2026-06-24", obs: null },
-    { produto_id: produtos[1].id, quantidade: 17, data: "2026-06-27", obs: "Procedimento 004" },
-    { produto_id: produtos[2].id, quantidade: 30, data: "2026-06-16", obs: null },
-    { produto_id: produtos[2].id, quantidade: 20, data: "2026-06-17", obs: "Procedimento 005" },
-    { produto_id: produtos[2].id, quantidade: 50, data: "2026-06-20", obs: "Consumo excepcional" },
-  ];
-  for (const s of saidas) {
-    await query(
-      `INSERT INTO estoque_saidas (clinic_id, produto_id, quantidade, data_saida, observacao)
-       VALUES (1, $1, $2, $3, $4)`,
-      [s.produto_id, s.quantidade, s.data, s.obs]
-    );
-  }
-
-  console.log("Seed: estoque (3 produtos, 5 entradas, 11 saídas)");
+  console.log("Seed: estoque (10 produtos)");
 }
 
-async function listMovimentacoes({ clinic_id, tipo, produto_id, data_inicio, data_fim }) {
+async function listMovimentacoes({
+  clinic_id,
+  tipo,
+  produto_id,
+  data_inicio,
+  data_fim,
+}) {
   const params = [clinic_id || 1];
   let idx = 2;
 
   const conditions = [];
-  if (produto_id) { conditions.push(`e.produto_id = $${idx++}`); params.push(produto_id); }
-  if (data_inicio) { conditions.push(`e.data_mov >= $${idx++}`); params.push(data_inicio); }
-  if (data_fim) { conditions.push(`e.data_mov <= $${idx++}`); params.push(data_fim); }
+  if (produto_id) {
+    conditions.push(`e.produto_id = $${idx++}`);
+    params.push(produto_id);
+  }
+  if (data_inicio) {
+    conditions.push(`e.data_mov >= $${idx++}`);
+    params.push(data_inicio);
+  }
+  if (data_fim) {
+    conditions.push(`e.data_mov <= $${idx++}`);
+    params.push(data_fim);
+  }
 
   let tipoFilter = "";
   if (tipo === "entrada") tipoFilter = "AND e.tipo = 'entrada'";
@@ -107,36 +265,216 @@ async function listMovimentacoes({ clinic_id, tipo, produto_id, data_inicio, dat
   }));
 }
 
-;
+async function listProdutos({ clinicId, busca, categoria, situacao } = {}) {
+  const params = [clinicId || 1];
+  let idx = 2;
+  const conditions = [];
 
-async function listProdutos(clinicId) {
+  if (busca) {
+    conditions.push(`(nome ILIKE $${idx} OR codigo ILIKE $${idx})`);
+    params.push(`%${busca}%`);
+    idx++;
+  }
+  if (categoria) {
+    conditions.push(`categoria = $${idx}`);
+    params.push(categoria);
+    idx++;
+  }
+  if (situacao) {
+    conditions.push(`situacao = $${idx}`);
+    params.push(situacao);
+    idx++;
+  }
+
+  const where = conditions.length > 0 ? "AND " + conditions.join(" AND ") : "";
+
   const { rows } = await query(
-    `SELECT id, nome, saldo_atual, saldo_minimo, situacao, unidade
+    `SELECT id, codigo, nome, descricao, embalagem, lote, vencimento, categoria, fornecedor,
+            saldo_atual, saldo_minimo, saldo_ideal, situacao, unidade
      FROM estoque_produtos
-     WHERE clinic_id = $1 AND deleted_at IS NULL AND is_ativo = true
+     WHERE clinic_id = $1 AND deleted_at IS NULL AND is_ativo = true ${where}
      ORDER BY nome ASC`,
-    [clinicId || 1]
+    params,
+  );
+  return rows;
+}
+
+async function listLotesByProduto(produtoId, clinicId) {
+  const { rows } = await query(
+    `SELECT
+       e.lote,
+       e.validade,
+       e.quantidade - COALESCE(s.total_usado, 0) AS saldo
+     FROM (
+       SELECT lote, validade, SUM(quantidade) AS quantidade
+       FROM estoque_entradas
+       WHERE produto_id = $1 AND clinic_id = $2 AND lote IS NOT NULL AND deleted_at IS NULL
+       GROUP BY lote, validade
+     ) e
+     LEFT JOIN (
+       SELECT lote, SUM(quantidade) AS total_usado
+       FROM estoque_saidas
+       WHERE produto_id = $1 AND lote IS NOT NULL AND deleted_at IS NULL
+       GROUP BY lote
+     ) s ON s.lote = e.lote
+     WHERE e.quantidade - COALESCE(s.total_usado, 0) > 0
+     ORDER BY e.validade ASC NULLS LAST`,
+    [produtoId, clinicId || 1],
   );
   return rows;
 }
 
 async function createEntrada(data) {
   const { rows } = await query(
-    `INSERT INTO estoque_entradas (clinic_id, produto_id, quantidade, data_entrada, fornecedor, valor, registrar_financeiro, observacao)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    `INSERT INTO estoque_entradas (clinic_id, produto_id, quantidade, data_entrada, fornecedor, valor, registrar_financeiro, observacao, lote, validade)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
     [
       data.clinic_id || 1,
       data.produto_id,
       data.quantidade,
-      data.data_entrada || new Date().toISOString().slice(0,10),
+      data.data_entrada || new Date().toISOString().slice(0, 10),
       data.fornecedor || null,
       data.valor || null,
       data.registrar_financeiro || false,
-      data.fornecedor ? "Fornecedor: " + data.fornecedor : "Entrada registrada pelo sistema"
-    ]
+      data.fornecedor
+        ? "Fornecedor: " + data.fornecedor
+        : "Entrada registrada pelo sistema",
+      data.lote || null,
+      data.validade || null,
+    ],
   );
   return rows[0];
 }
 
-module.exports = { seedEstoque, listMovimentacoes, listProdutos, createEntrada };
+async function createSaida(data) {
+  // Validate sufficient balance
+  const {
+    rows: [produto],
+  } = await query(
+    `SELECT saldo_atual FROM estoque_produtos
+     WHERE id = $1 AND clinic_id = $2 AND deleted_at IS NULL AND is_ativo = true`,
+    [data.produto_id, data.clinic_id || 1],
+  );
+  if (!produto) throw new Error("Produto não encontrado");
+  if (produto.saldo_atual < data.quantidade) {
+    throw new Error("Saldo insuficiente");
+  }
+
+  const { rows } = await query(
+    `INSERT INTO estoque_saidas (clinic_id, produto_id, paciente_id, quantidade, data_saida, valor, registrar_financeiro, observacao, lote, validade)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+     RETURNING *`,
+    [
+      data.clinic_id || 1,
+      data.produto_id,
+      data.paciente_id,
+      data.quantidade,
+      data.data_saida || new Date().toISOString().slice(0, 10),
+      data.valor || null,
+      data.registrar_financeiro || false,
+      data.observacao || "Saída registrada pelo sistema",
+      data.lote || null,
+      data.validade || null,
+    ],
+  );
+  return rows[0];
+}
+
+async function createProduto(data) {
+  // Check unique codigo within clinic
+  if (data.codigo) {
+    const { rows: existing } = await query(
+      `SELECT id FROM estoque_produtos
+       WHERE clinic_id = $1 AND codigo = $2 AND deleted_at IS NULL`,
+      [data.clinic_id || 1, data.codigo],
+    );
+    if (existing.length > 0) {
+      throw new Error("Código já existe");
+    }
+  }
+
+  const saldoInicial = data.saldo_inicial || 0;
+  const saldoMinimo = data.saldo_minimo || 1;
+
+  if (data.criar_entrada_auto) {
+    // Create product with saldo_atual=0 (entrada will be created later by the second modal)
+    const { rows } = await query(
+      `INSERT INTO estoque_produtos
+         (clinic_id, codigo, nome, descricao, embalagem, categoria, fornecedor, lote, vencimento,
+          saldo_atual, saldo_minimo, saldo_ideal, situacao, is_ativo)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, $10, $11, 'esgotado', true)
+       RETURNING *`,
+      [
+        data.clinic_id || 1,
+        data.codigo || null,
+        data.nome,
+        data.descricao || null,
+        data.embalagem,
+        data.categoria,
+        data.fornecedor || null,
+        data.lote || null,
+        data.vencimento || null,
+        saldoMinimo,
+        data.saldo_ideal || null,
+      ],
+    );
+    return rows[0];
+  }
+
+  // Normal flow: calculate situacao and insert with saldo_atual = saldo_inicial
+  let situacao;
+  if (saldoInicial <= 0) {
+    situacao = "esgotado";
+  } else if (saldoInicial <= saldoMinimo) {
+    situacao = "baixo";
+  } else {
+    situacao = "normal";
+  }
+
+  const { rows } = await query(
+    `INSERT INTO estoque_produtos
+       (clinic_id, codigo, nome, descricao, embalagem, categoria, fornecedor, lote, vencimento,
+        saldo_atual, saldo_minimo, saldo_ideal, situacao, is_ativo)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, true)
+     RETURNING *`,
+    [
+      data.clinic_id || 1,
+      data.codigo || null,
+      data.nome,
+      data.descricao || null,
+      data.embalagem,
+      data.categoria,
+      data.fornecedor || null,
+      data.lote || null,
+      data.vencimento || null,
+      saldoInicial,
+      saldoMinimo,
+      data.saldo_ideal || null,
+      situacao,
+    ],
+  );
+  return rows[0];
+}
+
+async function updateEntradaFinanceiro(id, data) {
+  const { rows } = await query(
+    `UPDATE estoque_entradas
+     SET valor = $1, registrar_financeiro = $2
+     WHERE id = $3 AND deleted_at IS NULL
+     RETURNING *`,
+    [data.valor || null, data.registrar_financeiro || false, id],
+  );
+  return rows[0];
+}
+
+module.exports = {
+  seedEstoque,
+  listMovimentacoes,
+  listProdutos,
+  listLotesByProduto,
+  createEntrada,
+  createSaida,
+  createProduto,
+  updateEntradaFinanceiro,
+};
