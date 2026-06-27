@@ -95,8 +95,8 @@ export default function EntryGate({ onStart, loading, error }) {
   const initials = selected?.full_name ? getInitials(selected.full_name) : "?";
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-50 to-slate-100 p-6">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+    <div className="h-full flex items-center justify-center bg-gradient-to-br from-brand-50 to-slate-100 p-8">
+      <div className="w-full h-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
         <div className="bg-brand-800 px-8 py-6 text-white">
           <p className="text-sm font-medium text-blue-200 uppercase tracking-wider">
             Prontuário Eletrônico
@@ -104,7 +104,7 @@ export default function EntryGate({ onStart, loading, error }) {
           <h1 className="text-2xl font-bold mt-1">Painel Clínico</h1>
         </div>
 
-        <div className="p-8">
+        <div className="p-8 flex flex-col flex-1">
           {/* Patient Selector */}
           <div className="relative mb-6" ref={dropdownRef}>
             <button
@@ -255,7 +255,7 @@ export default function EntryGate({ onStart, loading, error }) {
             data-testid="btn-start-atendimento"
             onClick={handleStart}
             disabled={loading || !selected}
-            className="w-full py-3.5 px-6 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors shadow-sm"
+            className="w-full py-3.5 px-6 bg-brand-600 hover:bg-brand-700 disabled:opacity-60 text-white font-semibold rounded-xl transition-colors shadow-sm mt-auto"
           >
             {loading
               ? "Iniciando atendimento..."

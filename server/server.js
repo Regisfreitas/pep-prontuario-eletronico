@@ -23,6 +23,7 @@ const patientsRoutes = require("./routes/patients");
 const integrationsRoutes = require("./routes/integrations");
 const profileRoutes = require("./routes/profile");
 const documentRoutes = require("./routes/documents");
+const estoqueRoutes = require("./routes/estoque");
 const { seedDemoData } = require("./controllers/agendaController");
 const { seedDoctors } = require("./services/doctorService");
 const { seedPatients } = require("./services/patientService");
@@ -31,6 +32,7 @@ const {
   seedCIDReference,
 } = require("./services/aiScribeSeedService");
 const { seedDocumentTemplates } = require("./services/documentSeedService");
+const { seedEstoque } = require("./services/estoqueService");
 const memedService = require("./services/memedService");
 
 const app = express();
@@ -54,6 +56,7 @@ app.use("/api/patients", patientsRoutes);
 app.use("/api/integrations", integrationsRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", documentRoutes);
+app.use("/api/estoque", estoqueRoutes);
 app.use("/api", atendimentoRoutes);
 
 if (process.env.NODE_ENV === "production") {
@@ -71,6 +74,7 @@ async function start() {
   await seedPromptAI();
   await seedCIDReference();
   await seedDocumentTemplates();
+  await seedEstoque();
 
   // Validar chaves Memed antes de subir
   if (process.env.MEMED_API_KEY) {

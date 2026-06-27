@@ -6,6 +6,7 @@ import AgendaPage from "./pages/AgendaPage";
 import PatientsPage from "./pages/PatientsPage";
 import PerfilPage from "./pages/PerfilPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import MovimentacoesEstoque from "./pages/MovimentacoesEstoque";
 
 export default function App() {
   return (
@@ -19,7 +20,7 @@ export default function App() {
             <Route path="/perfil" element={<PerfilPage />} />
             <Route path="/perfil/:tab" element={<PerfilPage />} />
             <Route path="/estoque">
-              <Route path="movimentacoes" element={<PlaceholderPage />} />
+              <Route path="movimentacoes" element={<MovimentacoesEstoque />} />
               <Route path="produtos" element={<PlaceholderPage />} />
               <Route path="relatorios" element={<PlaceholderPage />} />
             </Route>
