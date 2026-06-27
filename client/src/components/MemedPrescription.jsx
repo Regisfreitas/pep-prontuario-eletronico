@@ -44,26 +44,13 @@ export default function MemedPrescription({ pacienteId }) {
   // ---------- Proactive init when MdHub is ready ----------
   const attemptInit = useCallback(async () => {
     if (initializedRef.current) return;
-    if (!window.MdHub || !window.MdHub.command) return;
-
     initializedRef.current = true;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    addLog("MdHub detectado — inicializando...");
+    addLog("Inicializando módulo...");
 
     const patient = patientRef.current;
 
     try {
-      // Verificar se modulo esta carregado
-      if (window.MdHub.module?.isLoaded) {
-        const loaded = window.MdHub.module.isLoaded("plataforma.prescricao");
-        addLog(`plataforma.prescricao carregado: ${loaded}`);
-        if (!loaded) {
-          initializedRef.current = false; // retry next poll
-          return;
-        }
-      }
-
-      // Enviar dados do paciente (passo minimo)
       if (patient) {
         await window.MdHub.command.send(
           "plataforma.prescricao",
@@ -83,7 +70,7 @@ export default function MemedPrescription({ pacienteId }) {
             email: patient.email || "",
           },
         );
-        addLog(`Paciente configurado: ${patient.full_name}`);
+        addLog(`Paciente: ${patient.full_name}`);
       }
 
       window.MdHub.module.show("plataforma.prescricao");
@@ -91,7 +78,7 @@ export default function MemedPrescription({ pacienteId }) {
       addLog("Módulo exibido");
     } catch (err) {
       addLog(`Erro: ${err.message}`);
-      initializedRef.current = false; // retry
+      initializedRef.current = false;
     }
   }, []);
 
@@ -134,11 +121,16 @@ export default function MemedPrescription({ pacienteId }) {
           if (cancelled) return;
           addLog("Script carregado");
           setState((s) => ({ ...s, phase: "loaded" }));
-          // Poll for MdHub readiness
-          let attempts = 0;
+          // Poll for MdHub + module readiness
           pollInterval = setInterval(() => {
             attempts++;
             if (!window.MdHub || !window.MdHub.command) return;
+            // Check if module is also loaded
+            if (
+              window.MdHub.module?.isLoaded &&
+              !window.MdHub.module.isLoaded("plataforma.prescricao")
+            )
+              return;
             clearInterval(pollInterval);
             attemptInit();
           }, 500);
