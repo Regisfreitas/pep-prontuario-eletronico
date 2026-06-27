@@ -33,17 +33,16 @@ export default function MemedPrescription({ pacienteId }) {
 
         script.onload = () => {
           if (c) return;
-          setPhase("loaded");
-          // Poll for module readiness
+          // Check for MdHub readiness
           const iv = setInterval(() => {
             if (!window.MdHub?.command) return;
-            if (ready.current) return;
-            ready.current = true;
             clearInterval(iv);
-            // Module is ready — hide loading
             setPhase("ready");
-          }, 500);
-          // Safety timeout
+          }, 300);
+          setTimeout(() => {
+            clearInterval(iv);
+            setPhase("ready");
+          }, 8000);
           setTimeout(() => {
             if (!ready.current) {
               clearInterval(iv);
@@ -96,7 +95,7 @@ export default function MemedPrescription({ pacienteId }) {
       >
         <div id="prescricao-controlados" className="w-full h-full" />
       </div>
-      {(phase === "loading" || phase === "loaded") && (
+      {phase === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/95 z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
