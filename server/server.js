@@ -75,6 +75,7 @@ async function start() {
   await seedCIDReference();
   await seedDocumentTemplates();
   await seedEstoque();
+  // Migration 008 columns applied automatically via initDb()
 
   // Validar chaves Memed antes de subir
   if (process.env.MEMED_API_KEY) {

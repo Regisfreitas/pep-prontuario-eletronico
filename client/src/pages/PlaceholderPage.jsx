@@ -87,9 +87,6 @@ export default function PlaceholderPage() {
   return (
     <div className="flex flex-col flex-1 bg-slate-50">
       <div className="px-8 py-6 bg-white border-b border-slate-200">
-        <p className="text-xs text-slate-400 mb-1">
-          SoMed &gt; {meta.module} &gt; {meta.title}
-        </p>
         <h1 className="text-2xl font-bold text-slate-800">{meta.title}</h1>
       </div>
       <div className="flex-1 flex items-center justify-center p-8">

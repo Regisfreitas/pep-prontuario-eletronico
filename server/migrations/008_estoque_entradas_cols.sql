@@ -1,0 +1,9 @@
+ALTER TABLE estoque_entradas
+  ADD COLUMN IF NOT EXISTS fornecedor VARCHAR(200),
+  ADD COLUMN IF NOT EXISTS valor DECIMAL(10,2),
+  ADD COLUMN IF NOT EXISTS registrar_financeiro BOOLEAN DEFAULT false;
+
+ALTER TABLE estoque_saidas
+  ADD COLUMN IF NOT EXISTS fornecedor VARCHAR(200),
+  ADD COLUMN IF NOT EXISTS valor DECIMAL(10,2),
+  ADD COLUMN IF NOT EXISTS registrar_financeiro BOOLEAN DEFAULT false;

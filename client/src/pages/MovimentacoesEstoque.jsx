@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiUrl } from "../config/api";
 import LoadingSpinner from "../components/patients/LoadingSpinner";
+import ModalNovaEntrada from "../components/ModalNovaEntrada";
 
 const SITUACAO_CLASSES = {
   normal: "bg-emerald-50 text-emerald-700 border-emerald-200",
@@ -28,6 +29,7 @@ export default function MovimentacoesEstoque() {
   const [filtroProduto, setFiltroProduto] = useState("");
   const [dataInicio, setDataInicio] = useState("");
   const [dataFim, setDataFim] = useState("");
+  const [modalEntradaAberto, setModalEntradaAberto] = useState(false);
 
   const carregar = useCallback(async () => {
     setLoading(true);
@@ -48,12 +50,19 @@ export default function MovimentacoesEstoque() {
     }
   }, [filtroTipo, filtroProduto, dataInicio, dataFim]);
 
-  useEffect(() => { carregar(); }, [carregar]);
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   // Extrair lista única de produtos para o filtro
-  const produtos = [...new Map(
-    movimentacoes.map((m) => [m.produto_id, { id: m.produto_id, nome: m.produto_nome }])
-  ).values()];
+  const produtos = [
+    ...new Map(
+      movimentacoes.map((m) => [
+        m.produto_id,
+        { id: m.produto_id, nome: m.produto_nome },
+      ]),
+    ).values(),
+  ];
 
   return (
     <div
@@ -63,8 +72,9 @@ export default function MovimentacoesEstoque() {
     >
       {/* Header */}
       <div className="px-8 py-6 bg-white border-b border-slate-200">
-        <p className="text-xs text-slate-400 mb-1">SoMed &gt; Estoque</p>
-        <h1 className="text-2xl font-bold text-slate-800">Movimentações de Estoque</h1>
+        <h1 className="text-2xl font-bold text-slate-800">
+          Movimentações de Estoque
+        </h1>
       </div>
 
       {/* Filters */}
@@ -88,7 +98,9 @@ export default function MovimentacoesEstoque() {
         >
           <option value="">Todos os produtos</option>
           {produtos.map((p) => (
-            <option key={p.id} value={p.id}>{p.nome}</option>
+            <option key={p.id} value={p.id}>
+              {p.nome}
+            </option>
           ))}
         </select>
 
@@ -100,6 +112,7 @@ export default function MovimentacoesEstoque() {
           className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30"
         />
         <span className="text-sm text-slate-400">até</span>
+
         <input
           type="date"
           data-testid="filtro-data-fim"
@@ -107,12 +120,57 @@ export default function MovimentacoesEstoque() {
           onChange={(e) => setDataFim(e.target.value)}
           className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-600/30"
         />
+
+        <div className="flex items-center gap-3 ml-auto">
+          <button
+            type="button"
+            onClick={() => setModalEntradaAberto(true)}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors shadow-sm"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Nova Entrada
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-sm"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 12H4"
+              />
+            </svg>
+            Nova Saída
+          </button>
+        </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 p-8">
         {loading ? (
-          <LoadingSpinner data-testid="loading-spinner" label="Carregando movimentações..." />
+          <LoadingSpinner
+            data-testid="loading-spinner"
+            label="Carregando movimentações..."
+          />
         ) : movimentacoes.length === 0 ? (
           <div
             data-testid="movimentacoes-empty"
@@ -130,13 +188,27 @@ export default function MovimentacoesEstoque() {
             >
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50 text-left">
-                  <th className="py-3 px-4 font-semibold text-slate-600">Produto</th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">Tipo</th>
-                  <th className="py-3 px-4 font-semibold text-slate-600 text-right">Quantidade</th>
-                  <th className="py-3 px-4 font-semibold text-slate-600 text-right">Saldo Atual</th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">Situação</th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">Data</th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">Observação</th>
+                  <th className="py-3 px-4 font-semibold text-slate-600">
+                    Produto
+                  </th>
+                  <th className="py-3 px-4 font-semibold text-slate-600">
+                    Tipo
+                  </th>
+                  <th className="py-3 px-4 font-semibold text-slate-600 text-right">
+                    Quantidade
+                  </th>
+                  <th className="py-3 px-4 font-semibold text-slate-600 text-right">
+                    Saldo Atual
+                  </th>
+                  <th className="py-3 px-4 font-semibold text-slate-600">
+                    Situação
+                  </th>
+                  <th className="py-3 px-4 font-semibold text-slate-600">
+                    Data
+                  </th>
+                  <th className="py-3 px-4 font-semibold text-slate-600">
+                    Observação
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -160,8 +232,11 @@ export default function MovimentacoesEstoque() {
                         {m.tipo === "entrada" ? "Entrada" : "Saída"}
                       </span>
                     </td>
-                    <td className={`py-3 px-4 text-right font-medium ${m.tipo === "entrada" ? "text-emerald-700" : "text-red-700"}`}>
-                      {m.tipo === "entrada" ? "+" : "-"}{m.quantidade}
+                    <td
+                      className={`py-3 px-4 text-right font-medium ${m.tipo === "entrada" ? "text-emerald-700" : "text-red-700"}`}
+                    >
+                      {m.tipo === "entrada" ? "+" : "-"}
+                      {m.quantidade}
                     </td>
                     <td className="py-3 px-4 text-right text-slate-700 font-medium">
                       {m.saldo_apos_movimentacao}
@@ -170,14 +245,20 @@ export default function MovimentacoesEstoque() {
                       <span
                         data-testid={`movimentacao-situacao-${m.id}`}
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                          SITUACAO_CLASSES[m.situacao_produto] || SITUACAO_CLASSES.normal
+                          SITUACAO_CLASSES[m.situacao_produto] ||
+                          SITUACAO_CLASSES.normal
                         }`}
                       >
                         {SITUACAO_LABELS[m.situacao_produto] || "Normal"}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-slate-600">{fmtDate(m.data_movimentacao)}</td>
-                    <td className="py-3 px-4 text-slate-500 max-w-[200px] truncate" title={m.observacao || ""}>
+                    <td className="py-3 px-4 text-slate-600">
+                      {fmtDate(m.data_movimentacao)}
+                    </td>
+                    <td
+                      className="py-3 px-4 text-slate-500 max-w-[200px] truncate"
+                      title={m.observacao || ""}
+                    >
                       {m.observacao || "—"}
                     </td>
                   </tr>
@@ -187,6 +268,12 @@ export default function MovimentacoesEstoque() {
           </div>
         )}
       </div>
+
+      <ModalNovaEntrada
+        isOpen={modalEntradaAberto}
+        onClose={() => setModalEntradaAberto(false)}
+        onSuccess={carregar}
+      />
     </div>
   );
 }

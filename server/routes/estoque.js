@@ -1,8 +1,10 @@
 const express = require("express");
-const { movimentacoesHandler } = require("../controllers/estoqueController");
+const { movimentacoesHandler, produtosHandler, criarEntradaHandler } = require("../controllers/estoqueController");
 
 const router = express.Router();
 
 router.get("/movimentacoes", movimentacoesHandler);
+router.get("/produtos", produtosHandler);
+router.post("/entradas", criarEntradaHandler);
 
 module.exports = router;

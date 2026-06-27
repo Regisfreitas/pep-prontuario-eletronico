@@ -85,9 +85,6 @@ export default function PatientsPage() {
       <div id="wrapper" className="fuse-content max-w-5xl mx-auto px-6 py-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <p className="text-xs text-slate-400 mb-1">
-              Easy Health &gt; Pacientes
-            </p>
             <h1 className="text-2xl font-bold text-slate-800">
               Gestão de Pacientes
             </h1>
