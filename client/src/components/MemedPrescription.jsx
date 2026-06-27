@@ -4,175 +4,147 @@ import { fetchMemedToken, getMemedScriptUrl } from "../api/memed";
 
 const MEDICO_ID = 1;
 
-function normalizeCpf(value) {
-  if (!value) return "";
-  return value.replace(/\D/g, "");
+function normalizeCpf(v) {
+  return v ? v.replace(/\D/g, "") : "";
 }
-function formatDateToBr(value) {
-  if (!value) return "";
-  const [year, month, day] = value.split("-");
-  if (!year || !month || !day) return value;
-  return `${day}/${month}/${year}`;
+function fmtBr(v) {
+  if (!v) return "";
+  const [y, m, d] = v.split("-");
+  return y && m && d ? `${d}/${m}/${y}` : v;
 }
 
 export default function MemedPrescription({ pacienteId }) {
-  const [state, setState] = useState({
-    phase: "loading",
-    error: null,
-    log: [],
-  });
-  const scriptRef = useRef(null);
-  const initializedRef = useRef(false);
-  const patientRef = useRef(null);
+  const [s, setS] = useState({ phase: "loading", error: null, log: [] });
   const logRef = useRef([]);
-  const timeoutRef = useRef(null);
-
   const addLog = (msg) => {
     logRef.current = [
-      ...logRef.current.slice(-30),
-      { time: new Date().toLocaleTimeString(), msg },
+      ...logRef.current.slice(-40),
+      { t: new Date().toLocaleTimeString(), msg },
     ];
-    setState((s) => ({ ...s, log: logRef.current }));
+    setS((p) => ({ ...p, log: logRef.current }));
   };
-
   const fail = (msg) => {
-    addLog(`FALHA: ${msg}`);
-    setState((s) => ({ ...s, phase: "error", error: msg }));
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    addLog("FALHA: " + msg);
+    setS((p) => ({ ...p, phase: "error", error: msg }));
   };
+  const initialized = useRef(false);
+  const patient = useRef(null);
+  const timeout = useRef(null);
+  const script = useRef(null);
+  const poll = useRef(null);
 
-  // ---------- Proactive init when MdHub is ready ----------
-  const attemptInit = useCallback(async () => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    addLog("Inicializando módulo...");
-
-    const patient = patientRef.current;
-
+  const attempt = useCallback(async () => {
+    if (initialized.current) return;
+    initialized.current = true;
+    if (timeout.current) clearTimeout(timeout.current);
+    addLog("Inicializando...");
     try {
-      if (patient) {
+      const p = patient.current;
+      if (p) {
         await window.MdHub.command.send(
           "plataforma.prescricao",
           "setPaciente",
           {
-            idExterno: patient.id,
-            nome: patient.full_name,
-            cpf: normalizeCpf(patient.document || ""),
+            idExterno: p.id,
+            nome: p.full_name,
+            cpf: normalizeCpf(p.document),
             sexo:
-              patient.gender === "Masculino"
+              p.gender === "Masculino"
                 ? "Masculino"
-                : patient.gender === "Feminino"
+                : p.gender === "Feminino"
                   ? "Feminino"
                   : "",
-            data_nascimento: formatDateToBr(patient.birth_date),
-            telefone: patient.phone || "",
-            email: patient.email || "",
+            data_nascimento: fmtBr(p.birth_date),
+            telefone: p.phone || "",
+            email: p.email || "",
           },
         );
-        addLog(`Paciente: ${patient.full_name}`);
+        addLog("Paciente: " + p.full_name);
       }
-
       window.MdHub.module.show("plataforma.prescricao");
-      setState((s) => ({ ...s, phase: "ready" }));
-      addLog("Módulo exibido");
-    } catch (err) {
-      addLog(`Erro: ${err.message}`);
-      initializedRef.current = false;
+      setS((p) => ({ ...p, phase: "ready" }));
+      addLog("Exibido ✅");
+    } catch (e) {
+      addLog("Erro: " + e.message);
+      initialized.current = false;
     }
   }, []);
 
-  // ---------- Lifecycle ----------
   useEffect(() => {
-    let cancelled = false;
-    let pollInterval;
-
-    async function init() {
+    let c = false;
+    async function go() {
       addLog("Iniciando...");
       try {
         if (pacienteId) {
           try {
-            patientRef.current = await fetchPatientById(pacienteId);
-            addLog(`Paciente: ${patientRef.current?.full_name}`);
-          } catch {
-            addLog("Aviso: paciente não carregado");
-          }
+            patient.current = await fetchPatientById(pacienteId);
+            addLog("Paciente: " + patient.current?.full_name);
+          } catch {}
         }
-
         const { memed_token } = await fetchMemedToken(MEDICO_ID);
-        if (cancelled) return;
-        addLog(`Token obtido: ${memed_token.substring(0, 8)}...`);
+        if (c) return;
+        addLog("Token: " + memed_token.substring(0, 8) + "...");
 
-        // Timeout safety
-        timeoutRef.current = setTimeout(() => {
-          if (!initializedRef.current)
-            fail("Timeout: MdHub não inicializou em 30s");
+        timeout.current = setTimeout(() => {
+          if (!initialized.current) fail("Timeout 30s — MdHub não inicializou");
         }, 30000);
 
-        // Inject script
-        const script = document.createElement("script");
-        script.src = getMemedScriptUrl();
-        script.setAttribute("data-token", memed_token);
-        script.setAttribute("data-container", "prescricao-controlados");
-        script.setAttribute("data-color", "#6D28D9");
-        script.async = true;
-
-        script.onload = () => {
-          if (cancelled) return;
+        const el = document.createElement("script");
+        el.src = getMemedScriptUrl();
+        el.setAttribute("data-token", memed_token);
+        el.setAttribute("data-container", "prescricao-controlados");
+        el.setAttribute("data-color", "#6D28D9");
+        el.async = true;
+        el.onload = () => {
+          if (c) return;
           addLog("Script carregado");
-          setState((s) => ({ ...s, phase: "loaded" }));
-          // Poll for MdHub + module readiness
-          pollInterval = setInterval(() => {
-            attempts++;
-            if (!window.MdHub || !window.MdHub.command) return;
-            // Check if module is also loaded
-            if (
-              window.MdHub.module?.isLoaded &&
-              !window.MdHub.module.isLoaded("plataforma.prescricao")
-            )
-              return;
-            clearInterval(pollInterval);
-            attemptInit();
+          setS((p) => ({ ...p, phase: "loaded" }));
+          let n = 0;
+          poll.current = setInterval(() => {
+            n++;
+            if (!window.MdHub) return;
+            if (n <= 4)
+              addLog(
+                "MdHub keys: " +
+                  (Object.keys(window.MdHub).join(",") || "vazio"),
+              );
+            if (!window.MdHub.command) return;
+            clearInterval(poll.current);
+            attempt();
           }, 500);
         };
-
-        script.onerror = () => {
-          if (!cancelled) fail("Falha ao carregar script Memed");
+        el.onerror = () => {
+          if (!c) fail("Erro ao carregar script");
         };
-        document.body.appendChild(script);
-        scriptRef.current = script;
-      } catch (err) {
-        if (!cancelled) fail(err.message);
+        document.body.appendChild(el);
+        script.current = el;
+      } catch (e) {
+        if (!c) fail(e.message);
       }
     }
-
-    init();
-
+    go();
     return () => {
-      cancelled = true;
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (pollInterval) clearInterval(pollInterval);
+      c = true;
+      if (timeout.current) clearTimeout(timeout.current);
+      if (poll.current) clearInterval(poll.current);
       try {
-        if (window.MdHub?.module)
-          window.MdHub.module.hide("plataforma.prescricao");
-        if (window.MdHub?.command)
-          window.MdHub.command.send("plataforma.sdk", "logout").catch(() => {});
+        window.MdHub?.module?.hide?.("plataforma.prescricao");
+        window.MdHub?.command
+          ?.send?.("plataforma.sdk", "logout")
+          .catch(() => {});
       } catch {}
-      if (scriptRef.current?.parentNode)
-        document.body.removeChild(scriptRef.current);
-      initializedRef.current = false;
+      if (script.current?.parentNode) document.body.removeChild(script.current);
+      initialized.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pacienteId]);
 
-  const handleClose = () => {
+  const close = () => {
     try {
-      window.MdHub?.module?.hide("plataforma.prescricao");
+      window.MdHub?.module?.hide?.("plataforma.prescricao");
     } catch {}
   };
 
-  // ---------- Render ----------
-  if (state.phase === "error") {
+  if (s.phase === "error")
     return (
       <div
         className="flex flex-col items-center justify-center h-full min-h-[400px] p-8"
@@ -197,47 +169,39 @@ export default function MemedPrescription({ pacienteId }) {
         <p className="text-base font-medium text-slate-800 mb-2">
           Prescrição temporariamente indisponível
         </p>
-        <p className="text-sm text-slate-500 text-center max-w-md">
-          {state.error}
-        </p>
-        {state.log.length > 0 && (
-          <details className="mt-4 w-full max-w-lg text-left">
-            <summary className="text-xs text-slate-400 cursor-pointer">
-              Log de diagnóstico
-            </summary>
-            <div className="mt-2 p-3 bg-slate-50 rounded text-xs font-mono text-slate-600 max-h-48 overflow-y-auto whitespace-pre-wrap">
-              {state.log.map((l, i) => (
-                <div key={i}>
-                  [{l.time}] {l.msg}
-                </div>
-              ))}
-            </div>
-          </details>
-        )}
+        <p className="text-sm text-slate-500 text-center max-w-md">{s.error}</p>
+        <details className="mt-4 w-full max-w-lg text-left">
+          <summary className="text-xs text-slate-400 cursor-pointer">
+            Log
+          </summary>
+          <div className="mt-2 p-3 bg-slate-50 rounded text-xs font-mono text-slate-600 max-h-48 overflow-y-auto whitespace-pre-wrap">
+            {s.log.map((l, i) => (
+              <div key={i}>
+                [{l.t}] {l.msg}
+              </div>
+            ))}
+          </div>
+        </details>
       </div>
     );
-  }
 
   return (
     <div
       className="flex flex-col h-full"
       role="region"
-      aria-label="Prescrição de Controlados — Memed"
+      aria-label="Prescrição de Controlados"
     >
-      {state.phase !== "loading" && (
+      {s.phase !== "loading" && (
         <div className="flex items-center justify-between px-4 py-2 bg-slate-50 border-b border-slate-200 shrink-0">
           <span className="text-xs text-slate-500">
-            {state.phase === "ready"
-              ? "Memed ativo"
-              : "Aguardando inicialização..."}
+            {s.phase === "ready" ? "Memed ativo" : "Aguardando..."}
           </span>
           <button
-            type="button"
-            onClick={handleClose}
+            onClick={close}
             data-testid="memed-btn-close"
-            className="px-3 py-1 text-xs font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-white transition-colors"
+            className="px-3 py-1 text-xs font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-white"
           >
-            Fechar prescrição
+            Fechar
           </button>
         </div>
       )}
@@ -247,19 +211,17 @@ export default function MemedPrescription({ pacienteId }) {
       >
         <div id="prescricao-controlados" className="w-full h-full" />
       </div>
-      {state.phase === "loading" && (
+      {s.phase === "loading" && (
         <div
           className="absolute inset-0 flex items-center justify-center bg-white/95 z-10"
           data-testid="memed-loading"
         >
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
-            <p className="text-sm text-slate-500">
-              Conectando à plataforma Memed...
-            </p>
-            {state.log.slice(-1).map((l, i) => (
+            <p className="text-sm text-slate-500">Conectando à Memed...</p>
+            {s.log.slice(-1).map((l, i) => (
               <p key={i} className="text-xs text-slate-400">
-                [{l.time}] {l.msg}
+                [{l.t}] {l.msg}
               </p>
             ))}
           </div>
