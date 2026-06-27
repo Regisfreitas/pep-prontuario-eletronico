@@ -3,142 +3,149 @@ import { fetchPatientById } from "../api/patients";
 import { fetchMemedToken, getMemedScriptUrl } from "../api/memed";
 
 const MEDICO_ID = 1;
-
-function normalizeCpf(v) {
-  return v ? v.replace(/\D/g, "") : "";
-}
-function fmtBr(v) {
+const N = (v) => (v || "").replace(/\D/g, "");
+const F = (v) => {
   if (!v) return "";
   const [y, m, d] = v.split("-");
   return y && m && d ? `${d}/${m}/${y}` : v;
-}
+};
 
 export default function MemedPrescription({ pacienteId }) {
   const [s, setS] = useState({ phase: "loading", error: null, log: [] });
-  const logRef = useRef([]);
-  const addLog = (msg) => {
-    logRef.current = [
-      ...logRef.current.slice(-40),
-      { t: new Date().toLocaleTimeString(), msg },
+  const L = useRef([]);
+  const log = (m) => {
+    L.current = [
+      ...L.current.slice(-40),
+      { t: new Date().toLocaleTimeString(), msg: m },
     ];
-    setS((p) => ({ ...p, log: logRef.current }));
+    setS((p) => ({ ...p, log: L.current }));
   };
-  const fail = (msg) => {
-    addLog("FALHA: " + msg);
-    setS((p) => ({ ...p, phase: "error", error: msg }));
+  const err = (m) => {
+    log("FALHA: " + m);
+    setS((p) => ({ ...p, phase: "error", error: m }));
   };
-  const initialized = useRef(false);
-  const patient = useRef(null);
-  const timeout = useRef(null);
-  const script = useRef(null);
-  const poll = useRef(null);
+  const ready = useRef(false);
+  const pat = useRef(null);
+  const to = useRef(null);
+  const el = useRef(null);
+  const iv = useRef(null);
 
-  const attempt = useCallback(async () => {
-    if (initialized.current) return;
-    initialized.current = true;
-    if (timeout.current) clearTimeout(timeout.current);
-    addLog("Inicializando...");
+  const init = useCallback(async () => {
+    if (ready.current) return;
+    ready.current = true;
+    if (to.current) clearTimeout(to.current);
     try {
-      const p = patient.current;
-      if (p) {
+      if (pat.current) {
         await window.MdHub.command.send(
           "plataforma.prescricao",
           "setPaciente",
           {
-            idExterno: p.id,
-            nome: p.full_name,
-            cpf: normalizeCpf(p.document),
+            idExterno: pat.current.id,
+            nome: pat.current.full_name,
+            cpf: N(pat.current.document || ""),
+            data_nascimento: F(pat.current.birth_date),
             sexo:
-              p.gender === "Masculino"
+              pat.current.gender === "Masculino"
                 ? "Masculino"
-                : p.gender === "Feminino"
+                : pat.current.gender === "Feminino"
                   ? "Feminino"
                   : "",
-            data_nascimento: fmtBr(p.birth_date),
-            telefone: p.phone || "",
-            email: p.email || "",
+            telefone: pat.current.phone || "",
+            email: pat.current.email || "",
           },
         );
-        addLog("Paciente: " + p.full_name);
+        log("Paciente: " + pat.current.full_name);
       }
       window.MdHub.module.show("plataforma.prescricao");
       setS((p) => ({ ...p, phase: "ready" }));
-      addLog("Exibido ✅");
     } catch (e) {
-      addLog("Erro: " + e.message);
-      initialized.current = false;
+      ready.current = false;
+      log("Erro: " + e.message);
     }
   }, []);
 
   useEffect(() => {
     let c = false;
+
+    // CLEANUP STALE STATE before mounting
+    if (window.MdHub?.module)
+      try {
+        window.MdHub.module.hide("plataforma.prescricao");
+      } catch {}
+    if (window.MdHub?.command)
+      try {
+        window.MdHub.command.send("plataforma.sdk", "logout").catch(() => {});
+      } catch {}
+    delete window.MdHub;
+
     async function go() {
-      addLog("Iniciando...");
       try {
         if (pacienteId) {
           try {
-            patient.current = await fetchPatientById(pacienteId);
-            addLog("Paciente: " + patient.current?.full_name);
-          } catch {}
+            pat.current = await fetchPatientById(pacienteId);
+            log("Paciente: " + pat.current?.full_name);
+          } catch {
+            log("Paciente offline");
+          }
         }
         const { memed_token } = await fetchMemedToken(MEDICO_ID);
         if (c) return;
-        addLog("Token: " + memed_token.substring(0, 8) + "...");
 
-        timeout.current = setTimeout(() => {
-          if (!initialized.current) fail("Timeout 30s — MdHub não inicializou");
+        to.current = setTimeout(() => {
+          if (!ready.current) err("Timeout 30s");
         }, 30000);
 
-        const el = document.createElement("script");
-        el.src = getMemedScriptUrl();
-        el.setAttribute("data-token", memed_token);
-        el.setAttribute("data-container", "prescricao-controlados");
-        el.setAttribute("data-color", "#6D28D9");
-        el.async = true;
-        el.onload = () => {
+        const u = getMemedScriptUrl() + "?v=" + Date.now(); // cache buster
+        const e = document.createElement("script");
+        e.src = u;
+        e.setAttribute("data-token", memed_token);
+        e.setAttribute("data-container", "prescricao-controlados");
+        e.setAttribute("data-color", "#6D28D9");
+        e.async = true;
+        e.onload = () => {
           if (c) return;
-          addLog("Script carregado");
+          log("Script ok");
           setS((p) => ({ ...p, phase: "loaded" }));
           let n = 0;
-          poll.current = setInterval(() => {
-            n++;
+          iv.current = setInterval(() => {
             if (!window.MdHub) return;
-            if (n <= 4)
-              addLog(
-                "MdHub keys: " +
-                  (Object.keys(window.MdHub).join(",") || "vazio"),
-              );
+            if (++n <= 3) log("MdHub: " + Object.keys(window.MdHub).join(","));
             if (!window.MdHub.command) return;
-            clearInterval(poll.current);
-            attempt();
-          }, 500);
+            clearInterval(iv.current);
+            init();
+          }, 400);
         };
-        el.onerror = () => {
-          if (!c) fail("Erro ao carregar script");
+        e.onerror = () => {
+          if (!c) err("Script falhou");
         };
-        document.body.appendChild(el);
-        script.current = el;
+        document.body.appendChild(e);
+        el.current = e;
       } catch (e) {
-        if (!c) fail(e.message);
+        if (!c) err(e.message);
       }
     }
     go();
+
     return () => {
       c = true;
-      if (timeout.current) clearTimeout(timeout.current);
-      if (poll.current) clearInterval(poll.current);
+      if (to.current) clearTimeout(to.current);
+      if (iv.current) clearInterval(iv.current);
+      // Cleanup: hide + logout + remove MdHub + remove script
       try {
         window.MdHub?.module?.hide?.("plataforma.prescricao");
+      } catch {}
+      try {
         window.MdHub?.command
           ?.send?.("plataforma.sdk", "logout")
           .catch(() => {});
       } catch {}
-      if (script.current?.parentNode) document.body.removeChild(script.current);
-      initialized.current = false;
+      delete window.MdHub;
+      if (el.current?.parentNode) el.current.parentNode.removeChild(el.current);
+      ready.current = false;
     };
   }, [pacienteId]);
 
-  const close = () => {
+  const cls = () => {
     try {
       window.MdHub?.module?.hide?.("plataforma.prescricao");
     } catch {}
@@ -197,7 +204,7 @@ export default function MemedPrescription({ pacienteId }) {
             {s.phase === "ready" ? "Memed ativo" : "Aguardando..."}
           </span>
           <button
-            onClick={close}
+            onClick={cls}
             data-testid="memed-btn-close"
             className="px-3 py-1 text-xs font-medium text-slate-600 border border-slate-200 rounded-md hover:bg-white"
           >
