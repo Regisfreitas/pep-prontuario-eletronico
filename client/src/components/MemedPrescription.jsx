@@ -22,7 +22,6 @@ export default function MemedPrescription({ pacienteId }) {
         const { memed_token } = await fetchMemedToken(MEDICO_ID);
         if (c) return;
 
-        // Inject fresh script with cache-buster
         const script = document.createElement("script");
         script.src = getMemedScriptUrl() + "?_t=" + Date.now();
         script.setAttribute("data-token", memed_token);
@@ -33,34 +32,19 @@ export default function MemedPrescription({ pacienteId }) {
         script.onload = () => {
           if (c) return;
           setPhase("loaded");
-          // Try to show module directly after a short delay
           setTimeout(() => {
+            if (c) return;
             try {
               if (window.MdHub?.module?.show) {
                 window.MdHub.module.show("plataforma.prescricao");
-                setPhase("ready");
-              } else {
-                setError("MdHub.module.show não disponível");
               }
-            } catch(e) {
-              setError(e.message);
-            }
-          }, 2000);
-        };
-          setTimeout(() => {
-            clearInterval(iv);
+            } catch {}
             setPhase("ready");
-          }, 8000);
-          setTimeout(() => {
-            if (!ready.current) {
-              clearInterval(iv);
-              setError("Timeout ao carregar módulo");
-            }
-          }, 30000);
+          }, 3000);
         };
 
         script.onerror = () => {
-          if (!c) setError("Falha ao carregar script");
+          if (!c) setError("Script Memed falhou");
         };
         document.body.appendChild(script);
       } catch (e) {
@@ -72,7 +56,6 @@ export default function MemedPrescription({ pacienteId }) {
 
     return () => {
       c = true;
-      // Do NOT destroy MdHub — the SDK manages its own lifecycle
     };
   }, [pacienteId]);
 
@@ -95,7 +78,7 @@ export default function MemedPrescription({ pacienteId }) {
     <div
       className="flex flex-col h-full"
       role="region"
-      aria-label="Prescrição de Controlados"
+      aria-label="Prescricao de Controlados"
     >
       <div
         className="flex-1 bg-white"
@@ -107,7 +90,9 @@ export default function MemedPrescription({ pacienteId }) {
         <div className="absolute inset-0 flex items-center justify-center bg-white/95 z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
-            <p className="text-sm text-slate-500">Conectando à Memed...</p>
+            <p className="text-sm text-slate-500">
+              Conectando à plataforma Memed...
+            </p>
           </div>
         </div>
       )}
