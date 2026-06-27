@@ -58,7 +58,7 @@ export default function PrescriptionModal({ pacienteId }) {
       {/* Content */}
       <div className="flex-1 overflow-hidden relative">
         {activeTab === "controlled" ? (
-          <MemedPrescription pacienteId={pacienteId} />
+          <MemedPrescription />
         ) : (
           <div className="overflow-y-auto p-6 bg-white h-full">
             <PrescriptionForm mode="simple" />

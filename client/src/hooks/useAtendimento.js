@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EMPTY_DRAFTS } from "../constants/tabs";
+import { fetchMemedToken } from "../api/memed";
+import { preloadMemed } from "../api/memedPreloader";
 
 const API = "/api";
 const DEBOUNCE_MS = 1500;
@@ -90,6 +92,10 @@ export function useAtendimento() {
       setDrafts(data.drafts ?? EMPTY_DRAFTS);
       setPhase("workspace");
       setSaveStatus("saved");
+      // Preload Memed SDK in background
+      fetchMemedToken(1)
+        .then(({ memed_token }) => preloadMemed(memed_token))
+        .catch(() => {});
     } catch (err) {
       setSaveStatus("error");
       setError(err.message);

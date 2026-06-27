@@ -1,63 +1,38 @@
 import { useEffect, useState } from "react";
-import { fetchPatientById } from "../api/patients";
-import { fetchMemedToken, getMemedScriptUrl } from "../api/memed";
+import {
+  showMemed,
+  hideMemed,
+  isMemedLoaded,
+  onMemedState,
+} from "../api/memedPreloader";
 
-const MEDICO_ID = 1;
-
-export default function MemedPrescription({ pacienteId }) {
-  const [phase, setPhase] = useState("loading");
+export default function MemedPrescription() {
+  const [ready, setReady] = useState(isMemedLoaded());
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let c = false;
-
-    async function go() {
-      try {
-        if (pacienteId) {
-          try {
-            await fetchPatientById(pacienteId);
-          } catch {}
-        }
-
-        const { memed_token } = await fetchMemedToken(MEDICO_ID);
-        if (c) return;
-
-        const script = document.createElement("script");
-        script.src = getMemedScriptUrl() + "?_t=" + Date.now();
-        script.setAttribute("data-token", memed_token);
-        script.setAttribute("data-container", "prescricao-controlados");
-        script.setAttribute("data-color", "#6D28D9");
-        script.async = true;
-
-        script.onload = () => {
-          if (c) return;
-          setPhase("loaded");
-          setTimeout(() => {
-            if (c) return;
-            try {
-              if (window.MdHub?.module?.show) {
-                window.MdHub.module.show("plataforma.prescricao");
-              }
-            } catch {}
-            setPhase("ready");
-          }, 3000);
-        };
-
-        script.onerror = () => {
-          if (!c) setError("Script Memed falhou");
-        };
-        document.body.appendChild(script);
-      } catch (e) {
-        if (!c) setError(e.message);
-      }
+    if (isMemedLoaded()) {
+      showMemed();
+      setReady(true);
+      return;
     }
 
-    go();
+    const unsub = onMemedState(({ loaded, error: err }) => {
+      if (err) {
+        setError(err);
+        return;
+      }
+      if (loaded) {
+        setReady(true);
+        setTimeout(() => showMemed(), 500);
+      }
+    });
 
     return () => {
-      c = true;
+      hideMemed();
+      unsub();
     };
-  }, [pacienteId]);
+  }, []);
 
   if (error)
     return (
@@ -65,12 +40,10 @@ export default function MemedPrescription({ pacienteId }) {
         className="flex items-center justify-center h-full min-h-[400px] p-8"
         role="alert"
       >
-        <div className="text-center">
-          <p className="text-base font-medium text-slate-800 mb-2">
-            Prescrição temporariamente indisponível
-          </p>
-          <p className="text-sm text-slate-500">{error}</p>
-        </div>
+        <p className="text-base font-medium text-slate-800 mb-2">
+          Prescrição temporariamente indisponível
+        </p>
+        <p className="text-sm text-slate-500">{error}</p>
       </div>
     );
 
@@ -86,13 +59,11 @@ export default function MemedPrescription({ pacienteId }) {
       >
         <div id="prescricao-controlados" className="w-full h-full" />
       </div>
-      {(phase === "loading" || phase === "loaded") && (
+      {!ready && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/95 z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
-            <p className="text-sm text-slate-500">
-              Conectando à plataforma Memed...
-            </p>
+            <p className="text-sm text-slate-500">Carregando prescrição...</p>
           </div>
         </div>
       )}
