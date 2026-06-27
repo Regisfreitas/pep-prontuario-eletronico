@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchPatientById } from "../api/patients";
 import { fetchMemedToken, getMemedScriptUrl } from "../api/memed";
 
@@ -7,7 +7,6 @@ const MEDICO_ID = 1;
 export default function MemedPrescription({ pacienteId }) {
   const [phase, setPhase] = useState("loading");
   const [error, setError] = useState(null);
-  const ready = useRef(false);
 
   useEffect(() => {
     let c = false;
@@ -33,12 +32,21 @@ export default function MemedPrescription({ pacienteId }) {
 
         script.onload = () => {
           if (c) return;
-          // Check for MdHub readiness
-          const iv = setInterval(() => {
-            if (!window.MdHub?.command) return;
-            clearInterval(iv);
-            setPhase("ready");
-          }, 300);
+          setPhase("loaded");
+          // Try to show module directly after a short delay
+          setTimeout(() => {
+            try {
+              if (window.MdHub?.module?.show) {
+                window.MdHub.module.show("plataforma.prescricao");
+                setPhase("ready");
+              } else {
+                setError("MdHub.module.show não disponível");
+              }
+            } catch(e) {
+              setError(e.message);
+            }
+          }, 2000);
+        };
           setTimeout(() => {
             clearInterval(iv);
             setPhase("ready");
@@ -95,7 +103,7 @@ export default function MemedPrescription({ pacienteId }) {
       >
         <div id="prescricao-controlados" className="w-full h-full" />
       </div>
-      {phase === "loading" && (
+      {(phase === "loading" || phase === "loaded") && (
         <div className="absolute inset-0 flex items-center justify-center bg-white/95 z-10">
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
