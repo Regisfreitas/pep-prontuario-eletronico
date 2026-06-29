@@ -8,6 +8,7 @@ import PerfilPage from "./pages/PerfilPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import MovimentacoesEstoque from "./pages/MovimentacoesEstoque";
 import ProdutosEstoque from "./pages/ProdutosEstoque";
+import RelatoriosEstoque from "./pages/RelatoriosEstoque";
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
             <Route path="/estoque">
               <Route path="movimentacoes" element={<MovimentacoesEstoque />} />
               <Route path="produtos" element={<ProdutosEstoque />} />
-              <Route path="relatorios" element={<PlaceholderPage />} />
+              <Route path="relatorios" element={<RelatoriosEstoque />} />
             </Route>
             <Route path="/financeiro">
               <Route path="receitas-despesas" element={<PlaceholderPage />} />
