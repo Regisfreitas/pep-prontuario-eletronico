@@ -158,7 +158,7 @@ function Accordion({ accordion, expanded, isOpen, onToggle }) {
           type="button"
           data-testid={accordion.testId}
           onClick={onToggle}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-200 text-surgical-slate hover:bg-surgical-blue/10 hover:text-surgical-blue sidebar-link"
         >
           <Icon size={20} className="shrink-0" aria-hidden="true" />
           <span className="flex-1 text-left truncate">{accordion.label}</span>
@@ -183,8 +183,8 @@ function Accordion({ accordion, expanded, isOpen, onToggle }) {
                 className={({ isActive }) =>
                   `flex items-center gap-3 pl-10 pr-3 py-2 rounded-lg text-sm transition-all duration-200 ${
                     isActive
-                      ? "bg-brand-50 text-brand-700 font-medium"
-                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                      ? "bg-surgical-blue text-white font-medium shadow-sm"
+                      : "text-surgical-slate hover:bg-surgical-blue/10 hover:text-surgical-blue"
                   }`
                 }
               >
@@ -245,11 +245,13 @@ export default function Sidebar() {
       {/* Brand */}
       <div className="flex items-center h-14 px-3 border-b border-slate-100">
         {expanded ? (
-          <span className="text-sm font-bold text-brand-800 tracking-wide truncate">
-            PEP SoMed
+          <span className="text-sm font-bold text-surgical-dark tracking-wide truncate">
+            SoMed
           </span>
         ) : (
-          <span className="text-sm font-bold text-brand-800 mx-auto">P</span>
+          <span className="text-sm font-bold text-surgical-dark mx-auto">
+            S
+          </span>
         )}
       </div>
 
@@ -284,8 +286,8 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                   isActive
-                    ? "bg-brand-600 text-white font-medium shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    ? "bg-surgical-blue text-white font-medium shadow-sm"
+                    : "text-surgical-slate hover:bg-surgical-blue/10 hover:text-surgical-blue"
                 }`
               }
             >

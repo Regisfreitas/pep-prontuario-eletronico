@@ -34,6 +34,7 @@ const {
 const { seedDocumentTemplates } = require("./services/documentSeedService");
 const { seedEstoque } = require("./services/estoqueService");
 const memedService = require("./services/memedService");
+const financeiroRoutes = require("./routes/financeiro");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -58,6 +59,7 @@ app.use("/api", profileRoutes);
 app.use("/api", documentRoutes);
 app.use("/api/estoque", estoqueRoutes);
 app.use("/api", atendimentoRoutes);
+app.use("/api/financeiro", financeiroRoutes);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));

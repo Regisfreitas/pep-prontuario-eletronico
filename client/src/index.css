@@ -2,13 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Inter', system-ui, sans-serif;
-  @apply bg-slate-50 text-slate-800 antialiased;
+@layer base {
+    body {
+        font-family: "Inter", system-ui, sans-serif;
+        @apply bg-surgical-bg text-slate-800 antialiased;
+    }
+}
+
+@layer components {
+    /* ---- Buttons ---- */
+    .btn-primary {
+        @apply bg-surgical-blue text-white px-4 py-2 rounded-lg font-medium transition-colors duration-150;
+    }
+    .btn-primary:hover {
+        @apply bg-blue-700;
+    }
+    .btn-secondary {
+        @apply bg-white border border-surgical-slate text-surgical-slate px-4 py-2 rounded-lg font-medium transition-colors duration-150;
+    }
+    .btn-secondary:hover {
+        @apply bg-surgical-bg border-surgical-blue text-surgical-blue;
+    }
+    .btn-danger {
+        @apply bg-surgical-red text-white px-4 py-2 rounded-lg font-medium transition-colors duration-150;
+    }
+    .btn-danger:hover {
+        @apply bg-red-700;
+    }
+
+    /* ---- Tables ---- */
+    .table-surgical {
+        @apply w-full border-collapse;
+    }
+    .table-surgical th {
+        @apply bg-surgical-dark text-white px-4 py-3 text-left font-medium text-xs uppercase tracking-wider;
+    }
+    .table-surgical td {
+        @apply px-4 py-3 border-b border-slate-200 transition-colors duration-150 text-sm;
+    }
+    .table-surgical tr:hover td {
+        @apply bg-blue-50;
+    }
+
+    /* ---- Sidebar ---- */
+    .sidebar-link {
+        @apply flex items-center gap-2 px-3 py-2 rounded-lg text-surgical-slate transition-all duration-200;
+    }
+    .sidebar-link:hover {
+        @apply bg-surgical-blue/10 text-surgical-blue;
+    }
+    .sidebar-link.active {
+        @apply bg-surgical-blue text-white;
+    }
+
+    /* ---- Cards ---- */
+    .card-surgical {
+        @apply bg-white rounded-xl p-6 transition-all duration-200 shadow-card;
+    }
+    .card-surgical:hover {
+        @apply -translate-y-1 shadow-card-hover;
+    }
+
+    /* ---- Badges ---- */
+    .badge-normal {
+        @apply bg-surgical-teal/10 text-surgical-teal px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    .badge-baixo {
+        @apply bg-surgical-amber/10 text-surgical-amber px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    .badge-esgotado {
+        @apply bg-surgical-red/10 text-surgical-red px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    .badge-receita {
+        @apply bg-surgical-teal/10 text-surgical-teal px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
+    .badge-despesa {
+        @apply bg-surgical-red/10 text-surgical-red px-2.5 py-0.5 rounded-full text-xs font-medium;
+    }
 }
 
 [contenteditable]:empty::before {
-  content: attr(data-placeholder);
-  color: #94a3b8;
-  pointer-events: none;
+    content: attr(data-placeholder);
+    color: #94a3b8;
+    pointer-events: none;
 }

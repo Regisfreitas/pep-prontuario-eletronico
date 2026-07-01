@@ -7,9 +7,9 @@ import ModalCadastrarProduto from "../components/ModalCadastrarProduto";
 import ModalEntradaAuto from "../components/ModalEntradaAuto";
 
 const SITUACAO_CLASSES = {
-  normal: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  baixo: "bg-amber-50 text-amber-700 border-amber-200",
-  esgotado: "bg-red-50 text-red-700 border-red-200",
+  normal: "badge-normal",
+  baixo: "badge-baixo",
+  esgotado: "badge-esgotado",
 };
 
 const SITUACAO_LABELS = {
@@ -79,7 +79,7 @@ export default function MovimentacoesEstoque() {
     >
       {/* Header */}
       <div className="px-8 py-6 bg-white border-b border-slate-200">
-        <h1 className="text-2xl font-bold text-slate-800">
+        <h1 className="text-2xl font-bold text-surgical-dark">
           Movimentações de Estoque
         </h1>
       </div>
@@ -195,26 +195,26 @@ export default function MovimentacoesEstoque() {
               className="w-full text-sm"
             >
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-left">
-                  <th className="py-3 px-4 font-semibold text-slate-600">
+                <tr className="bg-surgical-dark text-left">
+                  <th className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider">
                     Produto
                   </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">
+                  <th className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider">
                     Tipo
                   </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600 text-right">
+                  <th className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider text-right">
                     Quantidade
                   </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600 text-right">
+                  <th className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider text-right">
                     Saldo Atual
                   </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">
+                  <th className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider">
                     Situação
                   </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">
+                  <th className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider">
                     Data
                   </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600">
+                  <th className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider">
                     Observação
                   </th>
                 </tr>
@@ -224,7 +224,7 @@ export default function MovimentacoesEstoque() {
                   <tr
                     key={m.id}
                     data-testid={`movimentacao-row-${m.id}`}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    className="border-b border-slate-100 hover:bg-blue-50 transition-colors"
                   >
                     <td className="py-3 px-4 text-slate-800 font-medium">
                       {m.produto_nome}

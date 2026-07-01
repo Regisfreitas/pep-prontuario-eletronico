@@ -1,4 +1,4 @@
-export default function LoadingSpinner({ label = 'Carregando...' }) {
+export default function LoadingSpinner({ label = "Carregando..." }) {
   return (
     <div
       data-testid="loading-spinner"
@@ -7,7 +7,7 @@ export default function LoadingSpinner({ label = 'Carregando...' }) {
       aria-live="polite"
       aria-label={label}
     >
-      <div className="w-10 h-10 border-4 border-brand-100 border-t-brand-600 rounded-full animate-spin" />
+      <div className="w-10 h-10 border-4 border-surgical-blue/20 border-t-surgical-blue rounded-full animate-spin" />
       <p className="mt-4 text-sm text-slate-500">{label}</p>
     </div>
   );

@@ -4,9 +4,9 @@ import LoadingSpinner from "../components/patients/LoadingSpinner";
 import ModalCadastrarProduto from "../components/ModalCadastrarProduto";
 
 const SITUACAO_CLASSES = {
-  normal: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  baixo: "bg-amber-50 text-amber-700 border-amber-200",
-  esgotado: "bg-red-50 text-red-700 border-red-200",
+  normal: "badge-normal",
+  baixo: "badge-baixo",
+  esgotado: "badge-esgotado",
 };
 
 const SITUACAO_LABELS = {
@@ -60,7 +60,7 @@ export default function ProdutosEstoque() {
     >
       {/* Header */}
       <div className="px-8 py-6 bg-white border-b border-slate-200">
-        <h1 className="text-2xl font-bold text-slate-800">Produtos</h1>
+        <h1 className="text-2xl font-bold text-surgical-dark">Produtos</h1>
       </div>
 
       {/* Filters */}
@@ -147,57 +147,57 @@ export default function ProdutosEstoque() {
               className="w-full text-sm"
             >
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-left">
+                <tr className="bg-surgical-dark text-left">
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Código
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Nome
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Embalagem
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Lote
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Vencimento
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Categoria
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Fornecedor
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600 text-right"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider text-right"
                     scope="col"
                   >
                     Saldo
                   </th>
                   <th
-                    className="py-3 px-4 font-semibold text-slate-600"
+                    className="py-3 px-4 font-medium text-white text-xs uppercase tracking-wider"
                     scope="col"
                   >
                     Situação
@@ -209,7 +209,7 @@ export default function ProdutosEstoque() {
                   <tr
                     key={p.id}
                     data-testid={`produto-row-${p.id}`}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                    className="border-b border-slate-100 hover:bg-blue-50 transition-colors"
                   >
                     <td className="py-3 px-4 text-slate-700 font-mono text-xs">
                       {p.codigo || "—"}

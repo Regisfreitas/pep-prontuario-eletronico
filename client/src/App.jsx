@@ -9,6 +9,9 @@ import PlaceholderPage from "./pages/PlaceholderPage";
 import MovimentacoesEstoque from "./pages/MovimentacoesEstoque";
 import ProdutosEstoque from "./pages/ProdutosEstoque";
 import RelatoriosEstoque from "./pages/RelatoriosEstoque";
+import ReceitasDespesas from "./pages/ReceitasDespesas";
+import ContasPagar from "./pages/ContasPagar";
+import ContasReceber from "./pages/ContasReceber";
 
 export default function App() {
   return (
@@ -27,9 +30,9 @@ export default function App() {
               <Route path="relatorios" element={<RelatoriosEstoque />} />
             </Route>
             <Route path="/financeiro">
-              <Route path="receitas-despesas" element={<PlaceholderPage />} />
-              <Route path="contas-pagar" element={<PlaceholderPage />} />
-              <Route path="contas-receber" element={<PlaceholderPage />} />
+              <Route path="receitas-despesas" element={<ReceitasDespesas />} />
+              <Route path="contas-pagar" element={<ContasPagar />} />
+              <Route path="contas-receber" element={<ContasReceber />} />
               <Route path="orcamentos" element={<PlaceholderPage />} />
               <Route path="gerar-recibo-nfe" element={<PlaceholderPage />} />
               <Route path="relatorios" element={<PlaceholderPage />} />

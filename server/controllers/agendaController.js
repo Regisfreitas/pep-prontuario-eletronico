@@ -1,12 +1,12 @@
-const crypto = require('crypto');
-const { query, withTransaction, pgErrorMessage } = require('../db');
-const { generateBloqueioDates } = require('../utils/generateBloqueioDates');
-const { getMedicosMap } = require('../services/doctorService');
-const { getPatientsMap, DEMO_PATIENTS } = require('../services/patientService');
+const crypto = require("crypto");
+const { query, withTransaction, pgErrorMessage } = require("../db");
+const { generateBloqueioDates } = require("../utils/generateBloqueioDates");
+const { getMedicosMap } = require("../services/doctorService");
+const { getPatientsMap, DEMO_PATIENTS } = require("../services/patientService");
 const {
   syncAgendaEventToGoogle,
   syncManyAgendaEvents,
-} = require('../services/agendaSyncService');
+} = require("../services/agendaSyncService");
 
 async function toEventRow(row, patientsMap) {
   const medicos = await getMedicosMap();
@@ -34,7 +34,7 @@ async function listAgenda(req, res) {
 
   if (!startDate || !endDate || !clinic_id) {
     return res.status(400).json({
-      error: 'startDate, endDate e clinic_id são obrigatórios',
+      error: "startDate, endDate e clinic_id são obrigatórios",
     });
   }
 
@@ -51,14 +51,16 @@ async function listAgenda(req, res) {
     params.push(doctor_id);
   }
 
-  sql += ' ORDER BY data_evento, hora_inicio';
+  sql += " ORDER BY data_evento, hora_inicio";
 
   try {
     const { rows } = await query(sql, params);
     const patientsMap = await getPatientsMap();
     const medicos = await getMedicosMap();
     res.json({
-      events: await Promise.all(rows.map((row) => toEventRow(row, patientsMap))),
+      events: await Promise.all(
+        rows.map((row) => toEventRow(row, patientsMap)),
+      ),
       medicos,
     });
   } catch (err) {
@@ -76,9 +78,17 @@ async function createConsulta(req, res) {
     hora_fim,
   } = req.body;
 
-  if (!doctor_id || !clinic_id || !paciente_id || !data_evento || !hora_inicio || !hora_fim) {
+  if (
+    !doctor_id ||
+    !clinic_id ||
+    !paciente_id ||
+    !data_evento ||
+    !hora_inicio ||
+    !hora_fim
+  ) {
     return res.status(400).json({
-      error: 'doctor_id, clinic_id, paciente_id, data_evento, hora_inicio e hora_fim são obrigatórios',
+      error:
+        "doctor_id, clinic_id, paciente_id, data_evento, hora_inicio e hora_fim são obrigatórios",
     });
   }
 
@@ -89,7 +99,7 @@ async function createConsulta(req, res) {
         hora_inicio, hora_fim, paciente_id
       ) VALUES ($1, $2, 'CONSULTA', $3, $4, $5, $6)
       RETURNING *`,
-      [doctor_id, clinic_id, data_evento, hora_inicio, hora_fim, paciente_id]
+      [doctor_id, clinic_id, data_evento, hora_inicio, hora_fim, paciente_id],
     );
 
     let row = rows[0];
@@ -100,7 +110,9 @@ async function createConsulta(req, res) {
     });
 
     if (googleSync.google_event_id) {
-      const refreshed = await query('SELECT * FROM agenda WHERE id = $1', [row.id]);
+      const refreshed = await query("SELECT * FROM agenda WHERE id = $1", [
+        row.id,
+      ]);
       row = refreshed.rows[0];
     }
 
@@ -125,24 +137,37 @@ async function createBloqueio(req, res) {
     data_limite,
   } = req.body;
 
-  if (!doctor_id || !clinic_id || !motivo_bloqueio || !hora_inicio || !hora_fim || !data_inicio || !tipo_repeticao) {
+  if (
+    !doctor_id ||
+    !clinic_id ||
+    !motivo_bloqueio ||
+    !hora_inicio ||
+    !hora_fim ||
+    !data_inicio ||
+    !tipo_repeticao
+  ) {
     return res.status(400).json({
-      error: 'doctor_id, clinic_id, motivo_bloqueio, hora_inicio, hora_fim, data_inicio e tipo_repeticao são obrigatórios',
+      error:
+        "doctor_id, clinic_id, motivo_bloqueio, hora_inicio, hora_fim, data_inicio e tipo_repeticao são obrigatórios",
     });
   }
 
-  const validTipos = ['UNICO', 'PERIODO', 'SEMANAL', 'MENSAL'];
+  const validTipos = ["UNICO", "PERIODO", "SEMANAL", "MENSAL"];
   if (!validTipos.includes(tipo_repeticao)) {
-    return res.status(400).json({ error: 'tipo_repeticao inválido' });
+    return res.status(400).json({ error: "tipo_repeticao inválido" });
   }
 
-  if (tipo_repeticao !== 'UNICO' && !data_limite) {
-    return res.status(400).json({ error: 'data_limite é obrigatória para repetições' });
+  if (tipo_repeticao !== "UNICO" && !data_limite) {
+    return res
+      .status(400)
+      .json({ error: "data_limite é obrigatória para repetições" });
   }
 
   const dates = generateBloqueioDates(data_inicio, tipo_repeticao, data_limite);
   if (dates.length === 0) {
-    return res.status(400).json({ error: 'Nenhuma data gerada para o bloqueio' });
+    return res
+      .status(400)
+      .json({ error: "Nenhuma data gerada para o bloqueio" });
   }
 
   const grupoId = crypto.randomUUID();
@@ -157,7 +182,15 @@ async function createBloqueio(req, res) {
             data_evento, hora_inicio, hora_fim, motivo_bloqueio
           ) VALUES ($1, $2, 'BLOQUEIO', $3, $4, $5, $6, $7)
           RETURNING *`,
-          [doctor_id, clinic_id, grupoId, data_evento, hora_inicio, hora_fim, motivo_bloqueio]
+          [
+            doctor_id,
+            clinic_id,
+            grupoId,
+            data_evento,
+            hora_inicio,
+            hora_fim,
+            motivo_bloqueio,
+          ],
         );
         created.push(rows[0]);
       }
@@ -168,7 +201,7 @@ async function createBloqueio(req, res) {
     const patientsMap = await getPatientsMap();
 
     const events = await Promise.all(
-      createdRows.map((row) => toEventRow(row, patientsMap))
+      createdRows.map((row) => toEventRow(row, patientsMap)),
     );
 
     res.status(201).json({
@@ -183,7 +216,7 @@ async function createBloqueio(req, res) {
 }
 
 async function seedDemoData() {
-  const { rows } = await query('SELECT COUNT(*)::int AS n FROM agenda');
+  const { rows } = await query("SELECT COUNT(*)::int AS n FROM agenda");
   if (rows[0].n > 0) return;
 
   const patientIds = DEMO_PATIENTS.map((p) => p.id);
@@ -196,7 +229,7 @@ async function seedDemoData() {
       (1, 1, 'CONSULTA', '2026-06-16', '10:00', '10:30', $1),
       (1, 1, 'CONSULTA', '2026-06-17', '14:00', '14:30', $2),
       (2, 1, 'CONSULTA', '2026-06-18', '09:00', '09:30', $3)`,
-    [patientIds[1], patientIds[0], patientIds[2]]
+    [patientIds[1], patientIds[0], patientIds[2]],
   );
 
   await query(
@@ -204,8 +237,84 @@ async function seedDemoData() {
       doctor_id, clinic_id, tipo_evento, grupo_bloqueio_id,
       data_evento, hora_inicio, hora_fim, motivo_bloqueio
     ) VALUES ($1, $2, 'BLOQUEIO', $3, $4, $5, $6, $7)`,
-    [1, 1, crypto.randomUUID(), '2026-06-14', '00:01', '23:59', 'Feriado local']
+    [
+      1,
+      1,
+      crypto.randomUUID(),
+      "2026-06-14",
+      "00:01",
+      "23:59",
+      "Feriado local",
+    ],
   );
+}
+
+// --- Agenda CRUD ---
+
+const agendaCrudService = require("../services/agendaService");
+
+async function listarAgendasHandler(req, res) {
+  const { tipo, is_ativo } = req.query;
+  try {
+    const data = await agendaCrudService.listarAgendas({
+      clinicId: req.query.clinic_id || 1,
+      tipo,
+      is_ativo,
+    });
+    res.json({ agendas: data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+async function criarAgendaHandler(req, res) {
+  const { nome, descricao, cor, tipo } = req.body;
+  if (!nome || !nome.trim()) {
+    return res.status(400).json({ error: "nome é obrigatório" });
+  }
+  try {
+    const agenda = await agendaCrudService.criarAgenda({
+      clinic_id: req.body.clinic_id || 1,
+      nome: nome.trim(),
+      descricao,
+      cor,
+      tipo,
+    });
+    res.status(201).json(agenda);
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
+}
+
+async function atualizarAgendaHandler(req, res) {
+  const { id } = req.params;
+  const { nome, descricao, cor, tipo, is_ativo } = req.body;
+  try {
+    const agenda = await agendaCrudService.atualizarAgenda(id, {
+      nome,
+      descricao,
+      cor,
+      tipo,
+      is_ativo,
+    });
+    if (!agenda)
+      return res.status(404).json({ error: "Agenda não encontrada" });
+    res.json(agenda);
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
+}
+
+async function excluirAgendaHandler(req, res) {
+  const { id } = req.params;
+  try {
+    const agenda = await agendaCrudService.excluirAgenda(id);
+    if (!agenda)
+      return res.status(404).json({ error: "Agenda não encontrada" });
+    res.json({ message: "Agenda excluída", agenda });
+  } catch (err) {
+    res.status(422).json({ error: err.message });
+  }
 }
 
 module.exports = {
@@ -213,4 +322,8 @@ module.exports = {
   createConsulta,
   createBloqueio,
   seedDemoData,
+  listarAgendasHandler,
+  criarAgendaHandler,
+  atualizarAgendaHandler,
+  excluirAgendaHandler,
 };

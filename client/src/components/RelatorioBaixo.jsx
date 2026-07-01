@@ -160,12 +160,12 @@ export default function RelatorioBaixo() {
               className="w-full text-sm"
             >
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50 text-left">
+                <tr className="bg-surgical-dark text-left">
                   {columns.map((col) => (
                     <th
                       key={col.label}
                       scope="col"
-                      className={`py-3 px-3 font-semibold text-slate-600 text-xs whitespace-nowrap ${col.className || ""} ${col.sortKey ? "cursor-pointer hover:text-slate-800" : ""}`}
+                      className={`py-3 px-3 font-medium text-white text-xs uppercase tracking-wider whitespace-nowrap ${col.className || ""} ${col.sortKey ? "cursor-pointer hover:text-blue-200" : ""}`}
                       onClick={() => col.sortKey && handleSort(col.sortKey)}
                     >
                       {col.label}
@@ -180,9 +180,7 @@ export default function RelatorioBaixo() {
               </thead>
               <tbody>
                 {sorted.map((r) => (
-                  <tr
-                    key={r.id}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                  <tr key={r.id} className="border-b border-slate-100 hover:bg-blue-50 transition-colors">
                   >
                     <td className="py-3 px-3 text-slate-700 font-mono text-xs">
                       {r.codigo || "—"}

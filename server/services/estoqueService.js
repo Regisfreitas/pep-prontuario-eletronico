@@ -1,4 +1,5 @@
-const { query } = require("../db");
+const { query, withTransaction } = require("../db");
+const financeiroService = require("./financeiroService");
 
 async function seedEstoque() {
   const { rows } = await query(
@@ -325,7 +326,7 @@ async function listLotesByProduto(produtoId, clinicId) {
 }
 
 async function createEntrada(data) {
-  const { rows } = await query(
+  const entrada = await query(
     `INSERT INTO estoque_entradas (clinic_id, produto_id, quantidade, data_entrada, fornecedor, valor, registrar_financeiro, observacao, lote, validade)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
@@ -344,7 +345,31 @@ async function createEntrada(data) {
       data.validade || null,
     ],
   );
-  return rows[0];
+  const entradaRow = entrada.rows[0];
+
+  // Auto-create despesa if financeiro flag is set
+  if (
+    entradaRow.registrar_financeiro &&
+    entradaRow.valor &&
+    Number(entradaRow.valor) > 0
+  ) {
+    try {
+      await financeiroService.criarDespesa({
+        clinic_id: data.clinic_id || 1,
+        estoque_entrada_id: entradaRow.id,
+        descricao: `Entrada de estoque - ${data.fornecedor || "sem fornecedor"}`,
+        valor: Number(entradaRow.valor),
+        data: entradaRow.data_entrada,
+        categoria: "estoque",
+        fornecedor: data.fornecedor,
+        is_manual: false,
+      });
+    } catch (err) {
+      console.warn("Financeiro auto-create despesa warning:", err.message);
+    }
+  }
+
+  return entradaRow;
 }
 
 async function createSaida(data) {
@@ -352,7 +377,7 @@ async function createSaida(data) {
   const {
     rows: [produto],
   } = await query(
-    `SELECT saldo_atual FROM estoque_produtos
+    `SELECT saldo_atual, nome AS produto_nome, unidade FROM estoque_produtos
      WHERE id = $1 AND clinic_id = $2 AND deleted_at IS NULL AND is_ativo = true`,
     [data.produto_id, data.clinic_id || 1],
   );
@@ -378,7 +403,31 @@ async function createSaida(data) {
       data.validade || null,
     ],
   );
-  return rows[0];
+  const saidaRow = rows[0];
+
+  // Auto-create receita if financeiro flag is set
+  if (
+    saidaRow.registrar_financeiro &&
+    saidaRow.valor &&
+    Number(saidaRow.valor) > 0
+  ) {
+    try {
+      await financeiroService.criarReceita({
+        clinic_id: data.clinic_id || 1,
+        estoque_saida_id: saidaRow.id,
+        paciente_id: data.paciente_id,
+        descricao: `Saída de estoque - ${produto.produto_nome} (${data.quantidade} ${produto.unidade})`,
+        valor: Number(saidaRow.valor),
+        data: saidaRow.data_saida,
+        categoria: "estoque",
+        is_manual: false,
+      });
+    } catch (err) {
+      console.warn("Financeiro auto-create receita warning:", err.message);
+    }
+  }
+
+  return saidaRow;
 }
 
 async function createProduto(data) {
